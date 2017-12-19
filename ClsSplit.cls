@@ -26,7 +26,7 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         Exit Function
     End If
     
-    If db.queryGroup(group) Then
+    If Not (db.queryGroup(group)) Then
         db.writeLog "不是所托管的群"
         Exit Function
     End If
