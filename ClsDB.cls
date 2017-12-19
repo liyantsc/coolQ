@@ -148,13 +148,8 @@ Public Function queryInfo(groupid As String) As String
         
         While Not rs.EOF
             index = index + 1
-            strTime = rs.Fields("time") + ""
-            If Format(strTime, "yyyy-mm-dd") = Format(Now, "yyyy-mm-dd") Then
-                strTime = "今" & Format(strTime, "hh:mm")
-            Else
-                strTime = "明" & Format(strTime, "hh:mm")
-            End If
-            content = content & index & "、<高铁>" & strTime & "●" + "电话" & rs.Fields("mobile") & "●" + "QQ" & rs.Fields("qq") + "●" & rs.Fields("content") & vbCrLf & vbCrLf
+
+            content = content & content & getContent(index, rs)
 
             rs.MoveNext
         Wend
@@ -206,13 +201,8 @@ Public Function search(group As String, key As String) As String
         
         While Not rs.EOF
             index = index + 1
-            strTime = rs.Fields("time") + ""
-            If Format(strTime, "yyyy-mm-dd") = Format(Now, "yyyy-mm-dd") Then
-                strTime = "今" & Format(strTime, "hh:mm")
-            Else
-                strTime = "明" & Format(strTime, "hh:mm")
-            End If
-            content = content & index & "、<高铁>" & strTime & "●" + "电话" & rs.Fields("mobile") & "●" + "QQ" & rs.Fields("qq") + "●" & rs.Fields("content") & vbCrLf & vbCrLf
+
+            content = content & getContent(index, rs)
 
             rs.MoveNext
         Wend
@@ -225,6 +215,29 @@ Public Function search(group As String, key As String) As String
     End If
     rs.Close
 errh:
+End Function
+
+
+Private Function getContent(index As Integer, rs As ADODB.Recordset) As String
+    Dim strTime As String
+    Dim strtype As String
+    Dim emoji As String
+    
+    strTime = rs.Fields("time") + ""
+    If Format(strTime, "yyyy-mm-dd") = Format(Now, "yyyy-mm-dd") Then
+        strTime = "今" & Format(strTime, "hh:mm")
+    Else
+        strTime = "明" & Format(strTime, "hh:mm")
+    End If
+    strtype = rs.Fields("type")
+    If strtype = "0" Then
+        emoji = "[CQ:emoji,id=128661]"
+    Else
+        emoji = "[CQ:emoji,id=128107]"
+    End If
+    
+    getContent = index & "、" & emoji & strTime & " ·" + "电话" & rs.Fields("mobile") & " ·" + "QQ" & rs.Fields("qq") + " ·" & rs.Fields("content") & vbCrLf & vbCrLf
+
 End Function
 
 Public Function delTimeout() As Boolean
