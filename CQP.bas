@@ -1,7 +1,7 @@
 Attribute VB_Name = "CQP"
 Option Explicit
 Public Const CQAPIVERTEXT = "9"
-Public Const CQAPPID = "com.example.demovb"
+Public Const CQAPPID = "com.liyan.pinche"
 
 Public Const EVENT_IGNORE = 0        '事件_忽略
 Public Const EVENT_BLOCK = 1         '事件_拦截

@@ -14,11 +14,12 @@ Attribute VB_Exposed = False
 Option Explicit
 Private Conn As New ADODB.Connection
 
+Const TIMEOUNT = 30
 
 Private nextSendTime As String
 
 Public Sub setNextTime()
-    nextSendTime = DateAdd("n", 10, Now)
+    nextSendTime = DateAdd("n", TIMEOUNT, Now)
 End Sub
 
 
@@ -157,10 +158,12 @@ Public Function queryInfo(groupid As String) As String
         Dim begin As String
         begin = "===拼车消息(" & index & "条)按发车先后==" & vbCrLf & vbCrLf
         Dim endstr As String
-        endstr = "下次转发时间" & Format(nextSendTime, "hh点mm分") & "车满请发送：车满，取消信息转发。谢谢！" & vbCrLf & vbCrLf
+        endstr = "下次时间" & Format(DateAdd("n", TIMEOUNT, Now), "hh点mm分") & ",车满请发送:车满"
         Dim allContent As String
         allContent = begin & content & endstr
         queryInfo = allContent
+        
+        setNextTime
     End If
     rs.Close
     Exit Function
@@ -192,7 +195,8 @@ End Function
 Public Function search(group As String, key As String) As String
     On Error GoTo errh
     Dim rs As New ADODB.Recordset
-    rs.Open "select * from msgdata where [group]='" + group + "' and content like '*" + key + "*'order by type+time", getDb
+    writeLog "搜索" + key
+    rs.Open "select * from msgdata where [group]='" + group + "' and content like '%" + key + "%'order by type+time", getDb
     If Not (rs.EOF And rs.BOF) Then
         Dim index As Integer
         Dim content As String
@@ -230,13 +234,15 @@ Private Function getContent(index As Integer, rs As ADODB.Recordset) As String
         strTime = "明" & Format(strTime, "hh:mm")
     End If
     strtype = rs.Fields("type")
+
+
     If strtype = "0" Then
-        emoji = "[CQ:emoji,id=128661]"
+'        emoji = "[CQ:face,id=152]"
     Else
-        emoji = "[CQ:emoji,id=128107]"
+'        emoji = "[CQ:face,id=95]"
     End If
     
-    getContent = index & "、" & emoji & strTime & " ·" + "电话" & rs.Fields("mobile") & " ·" + "QQ" & rs.Fields("qq") + " ·" & rs.Fields("content") & vbCrLf & vbCrLf
+    getContent = index & "、" & emoji & strTime & "、" & rs.Fields("mobile") & "、" & rs.Fields("qq") + "、" & rs.Fields("content") & vbCrLf & vbCrLf
 
 End Function
 

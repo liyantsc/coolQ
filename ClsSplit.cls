@@ -27,7 +27,6 @@ Public Function parse(content As String, group As String, qq As String) As Strin
     End If
     
     If Not (db.queryGroup(group)) Then
-        db.writeLog "不是所托管的群"
         Exit Function
     End If
     
@@ -43,7 +42,9 @@ Public Function parse(content As String, group As String, qq As String) As Strin
     If content = "拼车信息" Then
         parse = db.queryInfo(group)
         If parse = "" Then
-            parse = "[CQ:at,qq=" & qq & "]" + vbCrLf + vbCrLf + "非常抱歉，暂时还没有人发布拼车信息"
+            parse = getNoDataMsg(qq)
+        Else
+            db.writeLog parse
         End If
         Exit Function
     End If
@@ -52,7 +53,7 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         If UBound(data) = 1 Then
             parse = db.search(group, data(1))
             If parse = "" Then
-                parse = "[CQ:at,qq=" & qq & "]" + vbCrLf + vbCrLf + "非常抱歉，没有找到相关拼车信息"
+                parse = getNoDataMsg(qq)
             Else
                 parse = "[CQ:at,qq=" & qq & "]" + vbCrLf + vbCrLf + parse
             End If
@@ -64,7 +65,7 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         parse = db.queryItem(group, qq)
         If parse <> "" Then
             db.delMsg group, qq
-            parse = "[CQ:at,qq=" & qq & "]" + vbCrLf + "拼车信息:" + parse + vbCrLf + vbCrLf + "删除成功,不再转发" + vbCrLf + vbCrLf + db.queryInfo(group)
+            parse = "[CQ:at,qq=" & qq & "]" + vbCrLf + "拼车信息:" + parse + vbCrLf + vbCrLf + "删除成功"
         End If
         Exit Function
     End If
@@ -72,7 +73,7 @@ Public Function parse(content As String, group As String, qq As String) As Strin
     If InStr(content, "车找人") > 0 Or InStr(content, "车寻人") > 0 Or InStr(content, "人寻车") > 0 Or InStr(content, "人找车") > 0 Then
         data = split(content, "@")
         If UBound(data) < 2 Then
-            parse = "[CQ:at,qq=" & qq & "]本群有拼车消息格式要求，您的格式有误，机器人不会自动转发" + vbCrLf + vbCrLf + "您可以按此格式重新发:@车寻人@时间@电话@内容" + vbCrLf + vbCrLf + "举例:@车寻人@18:00@1358176****@六里桥回易县。余3座"
+            parse = getErrMsg(qq)
             Exit Function
         End If
     End If
@@ -87,9 +88,9 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         If time <> "" And mobile <> "" Then
             db.insertCheMsg group, qq, mobile, time, content
             
-            parse = "[CQ:at,qq=" & qq & "] 登记成功" & vbCrLf & "发车时间登记为" & time
+            parse = "[CQ:at,qq=" & qq & "] 登记成功" & vbCrLf & vbCrLf & "发车时间:" & time
         Else
-            parse = "[CQ:at,qq=" & qq & "]本群有拼车消息格式要求，您的格式有误，机器人不会自动转发" + vbCrLf + vbCrLf + "您可以按此格式重新发:@车寻人@时间@电话@内容" + vbCrLf + vbCrLf + "举例:@车寻人@18:00@1358176****@六里桥回易县。余3座"
+            parse = getErrMsg(qq)
         End If
         Exit Function
     End If
@@ -98,14 +99,22 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         mobile = getUserPhone(content)
         If time <> "" And mobile <> "" Then
             db.insertRenMsg group, qq, mobile, time, content
-            parse = "登记成功"
+            parse = "[CQ:at,qq=" & qq & "] 登记成功" & vbCrLf & vbCrLf & "坐车时间:" & time
         Else
-            parse = "[CQ:at,qq=" & qq & "]本群有拼车消息格式要求，您的格式有误，机器人不会自动转发" + vbCrLf + vbCrLf + "您可以按此格式重新发:@人寻车@时间@电话@内容" + vbCrLf + vbCrLf + "举例:@车寻人@18:00@1358176****@六里桥回易县。余3座"
+            parse = getErrMsg(qq)
         End If
         Exit Function
     End If
 errh:
     
+End Function
+
+Private Function getErrMsg(qq As String) As String
+    getErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + vbCrLf + "您的信息我无法识别,如果您想让我帮您登记" + vbCrLf + vbCrLf + "您可以按此格式重新发:@人寻车@时间@电话@内容" + vbCrLf + vbCrLf + "举例:@车寻人@18:00@1358176****@六里桥回易县。余3座"
+End Function
+
+Private Function getNoDataMsg(qq As String) As String
+    getNoDataMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + vbCrLf + "非常抱歉,暂时没有相关信息"
 End Function
 
 Public Function getUserPhone(ByVal TempStr As String) As String

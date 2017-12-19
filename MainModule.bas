@@ -72,7 +72,7 @@ Public Function eventPrivateMsg(ByVal subType As Long, ByVal sendTime As Long, B
 '        Form1.Text1.SelText = pGetStringFromPtr(msg)
 '    End If
     Dim ZC() As Byte
-    ZC = StrTByte("test")
+    ZC = StrTByte("请不要打扰我")
     CQ_sendPrivateMsg ac, fromQQ, VarPtr(ZC(0))
     eventPrivateMsg = EVENT_IGNORE
 End Function
