@@ -237,12 +237,12 @@ Private Function getContent(index As Integer, rs As ADODB.Recordset) As String
 
 
     If strtype = "0" Then
-'        emoji = "[CQ:face,id=152]"
+        emoji = "[CQ:emoji,id=128663]"
     Else
-'        emoji = "[CQ:face,id=95]"
+        emoji = "[CQ:emoji,id=128107]"
     End If
     
-    getContent = index & "、" & emoji & strTime & "、" & rs.Fields("mobile") & "、" & rs.Fields("qq") + "、" & rs.Fields("content") & vbCrLf & vbCrLf
+    getContent = index & "" & emoji & strTime & "" & "[CQ:emoji,id=9742]" & rs.Fields("mobile") & vbCrLf & rs.Fields("content") & vbCrLf & vbCrLf
 
 End Function
 

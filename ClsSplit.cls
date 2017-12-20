@@ -88,7 +88,7 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         If time <> "" And mobile <> "" Then
             db.insertCheMsg group, qq, mobile, time, content
             
-            parse = "[CQ:at,qq=" & qq & "] 登记成功" & vbCrLf & vbCrLf & "发车时间:" & time
+            parse = "[CQ:at,qq=" & qq & "] 登记成功" & vbCrLf & "发车时间:" & time
         Else
             parse = getErrMsg(qq)
         End If
@@ -99,7 +99,7 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         mobile = getUserPhone(content)
         If time <> "" And mobile <> "" Then
             db.insertRenMsg group, qq, mobile, time, content
-            parse = "[CQ:at,qq=" & qq & "] 登记成功" & vbCrLf & vbCrLf & "坐车时间:" & time
+            parse = "[CQ:at,qq=" & qq & "] 登记成功" & vbCrLf & "坐车时间:" & time
         Else
             parse = getErrMsg(qq)
         End If
