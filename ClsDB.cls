@@ -14,8 +14,8 @@ Attribute VB_Exposed = False
 Option Explicit
 Private Conn As New ADODB.Connection
 
-Const TIME_INTERVAL = 20
-
+Const TIME_INTERVAL = 15
+Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 
 Private Function getNextTime()
     getNextTime = Format(DateAdd("n", TIME_INTERVAL, Now), "yyyy-mm-dd hh:mm")
@@ -143,6 +143,9 @@ End Function
 Public Function queryInfo(groupid As String) As String
     On Error GoTo errh
     Dim rs As New ADODB.Recordset
+    Dim nextTime As String
+    nextTime = getNextTime
+    
     rs.Open "select * from msgdata where [group]='" + groupid + "' order by type+time", getDb
     If Not (rs.EOF And rs.BOF) Then
         Dim index As Integer
@@ -158,12 +161,8 @@ Public Function queryInfo(groupid As String) As String
             rs.MoveNext
         Wend
 
-        Dim nextTime As String
-        
         Dim begin As String
-        
-        nextTime = getNextTime
-        
+
         begin = "===拼车消息(" & index & "条)按发车先后==" & vbCrLf & vbCrLf
         Dim endstr As String
         endstr = "下次转发时间:" & Format(getNextTime, "hh点mm分") & ",车满请发送:车满"
@@ -171,8 +170,8 @@ Public Function queryInfo(groupid As String) As String
         allContent = begin & content & endstr
         queryInfo = allContent
         
-        updateNextTime groupid, nextTime
     End If
+    updateNextTime groupid, nextTime
     rs.Close
     Exit Function
 errh:
@@ -182,7 +181,11 @@ errh:
 End Function
 
 Private Function updateNextTime(groupid As String, nextTime As String)
-    Conn.Execute "update groupinfo set time='" + nextTime + "' where groupid='" + groupid + "'"
+    On Error GoTo errh
+    Conn.Execute "update groupinfo set [time]='" + nextTime + "' where groupid='" + groupid + "'"
+    Exit Function
+errh:
+    writeLog "更新时间出错"
 End Function
 
 
@@ -278,6 +281,7 @@ Public Function autoSend() As Boolean
         content = queryInfo(group)
         If content <> "" Then
             sendMesssage group, content
+            Sleep 500
         End If
         rs.MoveNext
     Wend

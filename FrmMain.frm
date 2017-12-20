@@ -33,6 +33,7 @@ Private Sub Timer1_Timer()
 End Sub
 
 Private Sub Timer2_Timer()
+    Timer2.Interval = 0
     db.autoSend
-    
+    Timer2.Interval = 5000
 End Sub
