@@ -5,6 +5,7 @@ Dim enabled As Boolean
 Public Form1S As Boolean
 Public db As New ClsDB
 
+
 '防止生产DLL的软件BUG
 Public Function FBUG() As Long
     '------------
@@ -30,8 +31,7 @@ End Function
 Public Function eventStartup() As Long
     eventStartup = 0
     FrmMain.Hide
-    db.setNextTime
-    
+
     db.openDb
     
 End Function

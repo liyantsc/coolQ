@@ -53,7 +53,7 @@ End Sub
 
 Private Sub Form_Load()
     FrmMain.Hide
-    
+    query
 End Sub
 
 

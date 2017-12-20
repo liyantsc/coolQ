@@ -14,13 +14,12 @@ Attribute VB_Exposed = False
 Option Explicit
 Private Conn As New ADODB.Connection
 
-Const TIMEOUNT = 30
+Const TIME_INTERVAL = 20
 
-Private nextSendTime As String
 
-Public Sub setNextTime()
-    nextSendTime = DateAdd("n", TIMEOUNT, Now)
-End Sub
+Private Function getNextTime()
+    getNextTime = Format(DateAdd("n", TIME_INTERVAL, Now), "yyyy-mm-dd hh:mm")
+End Function
 
 
 
@@ -106,7 +105,11 @@ End Function
 Public Function addGroupId(groupid As String) As Boolean
     On Error GoTo errh
     delGroupId groupid
-    getDb.Execute "insert into groupinfo (groupid) values('" + groupid + "')"
+    
+    Dim nextTime As String
+    nextTime = getNextTime
+    
+    getDb.Execute "insert into groupinfo ([groupid],[time]) values('" + groupid + "','" + nextTime + "')"
     addGroupId = True
     Exit Function
 errh:
@@ -155,15 +158,20 @@ Public Function queryInfo(groupid As String) As String
             rs.MoveNext
         Wend
 
+        Dim nextTime As String
+        
         Dim begin As String
+        
+        nextTime = getNextTime
+        
         begin = "===拼车消息(" & index & "条)按发车先后==" & vbCrLf & vbCrLf
         Dim endstr As String
-        endstr = "下次时间" & Format(DateAdd("n", TIMEOUNT, Now), "hh点mm分") & ",车满请发送:车满"
+        endstr = "下次转发时间:" & Format(getNextTime, "hh点mm分") & ",车满请发送:车满"
         Dim allContent As String
         allContent = begin & content & endstr
         queryInfo = allContent
         
-        setNextTime
+        updateNextTime groupid, nextTime
     End If
     rs.Close
     Exit Function
@@ -173,11 +181,14 @@ errh:
     
 End Function
 
+Private Function updateNextTime(groupid As String, nextTime As String)
+    Conn.Execute "update groupinfo set time='" + nextTime + "' where groupid='" + groupid + "'"
+End Function
+
+
 Public Function queryItem(group As String, qq As String) As String
     On Error GoTo errh
     Dim rs As New ADODB.Recordset
-    
-    
     
     Dim content As String
     rs.Open "select * from msgdata where [group]='" + group + "' and [qq]='" + qq + "'", getDb
@@ -254,25 +265,24 @@ Public Function delTimeout() As Boolean
 End Function
 
 Public Function autoSend() As Boolean
-    On Error Resume Next
+    On Error GoTo errh
     Dim time As String
     Dim content As String
     Dim rs As New ADODB.Recordset
     
     Dim group As String
     time = Format(Now, "yyyy-mm-dd hh:mm")
-    If time >= Format(nextSendTime, "yyyy-mm-dd hh:mm") Then
-        rs.Open "select [group] from msgdata group by [group]", getDb
-        While Not rs.EOF
-            group = rs.Fields("group") + ""
-            content = queryInfo(group)
+    rs.Open "select * from groupinfo where time<='" + time + "'", db.getDb
+    While Not rs.EOF
+        group = rs.Fields("groupid") + ""
+        content = queryInfo(group)
+        If content <> "" Then
             sendMesssage group, content
-            rs.MoveNext
-        Wend
-        rs.Close
-        
-        setNextTime
-    End If
+        End If
+        rs.MoveNext
+    Wend
+    rs.Close
+errh:
 End Function
 
 Public Function queryGroup(group As String) As Boolean

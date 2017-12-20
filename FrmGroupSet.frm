@@ -87,6 +87,10 @@ Private Sub query()
     Wend
 End Sub
 
+Private Sub Form_Load()
+    query
+End Sub
+
 Private Sub List1_DblClick()
     Dim groupid As String
 
