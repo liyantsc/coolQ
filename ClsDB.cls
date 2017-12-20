@@ -14,7 +14,7 @@ Attribute VB_Exposed = False
 Option Explicit
 Private Conn As New ADODB.Connection
 
-Const TIME_INTERVAL = 15
+Const TIME_INTERVAL = 30
 Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 
 Private Function getNextTime()
