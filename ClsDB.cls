@@ -156,7 +156,7 @@ Public Function queryInfo(groupid As String) As String
         While Not rs.EOF
             index = index + 1
 
-            content = content & content & getContent(index, rs)
+            content = content & getContent(index, rs)
 
             rs.MoveNext
         Wend
