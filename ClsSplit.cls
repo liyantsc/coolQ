@@ -15,6 +15,7 @@ Option Explicit
 
 Public Function parse(content As String, group As String, qq As String) As String
 
+
     content = Trim(content)
     content = Replace(content, vbCr, "")
     content = Replace(content, vbLf, "")
@@ -22,6 +23,9 @@ Public Function parse(content As String, group As String, qq As String) As Strin
     content = Replace(content, "'", "")
     content = Replace(content, vbNullChar, "")
     content = Replace(content, vbCrLf, "")
+    
+    content = db.filterContent(content)
+    
     If content = "" Then
         Exit Function
     End If
@@ -111,7 +115,7 @@ errh:
 End Function
 
 Private Function getErrMsg(qq As String) As String
-    getErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + vbCrLf + "您的信息我无法识别,如果您想让我帮您24小时自动转发" + vbCrLf + vbCrLf + "您可以参照以下格式" + vbCrLf + vbCrLf + "举例:@车寻人@18:00@1358176****@六里桥回*。余3座"
+    getErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + vbCrLf + "您的信息我无法识别,如果您想让我帮您发信息" + vbCrLf + vbCrLf + "您可以参照以下格式" + vbCrLf + vbCrLf + "举例:@车寻人@18:00@1761030****@六里桥回*。余3座"
 End Function
 
 Private Function getNoDataMsg(qq As String) As String

@@ -86,11 +86,15 @@ Public Function eventGroupMsg(ByVal subType As Long, ByVal sendTime As Long, ByV
     Dim split As New clsSplit
         
     content = split.parse(pGetStringFromPtr(msg), fromGroup * 10000, fromQQ * 10000)
-    If content <> "" Then
-        Dim ZC() As Byte
-        ZC = StrTByte(content)
-        CQ_sendGroupMsg ac, fromGroup, VarPtr(ZC(0))
-    End If
+    
+    db.sendMesssage fromGroup * 10000, content
+'    content = Replace(content, "电话", "")
+'    ontent = Replace(content, "手机", "")
+'    If content <> "" Then
+'        Dim ZC() As Byte
+'        ZC = StrTByte(content)
+'        CQ_sendGroupMsg ac, fromGroup, VarPtr(ZC(0))
+'    End If
     eventGroupMsg = EVENT_IGNORE '关于返回值说明, 见“eventPrivateMsg”函数
 End Function
 

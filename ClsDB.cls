@@ -229,6 +229,7 @@ Public Function search(group As String, key As String) As String
         begin = "[" + key + "]搜索结果:" + vbCrLf + vbCrLf + "===拼车消息(" & index & "条)按发车先后==" & vbCrLf & vbCrLf
         Dim allContent As String
         allContent = begin & content
+        
         search = allContent
     End If
     rs.Close
@@ -283,7 +284,7 @@ Public Function autoSend() As Boolean
             sendMesssage group, content
             Sleep 500
         Else
-            sendMesssage group, "大家好，有发布拼车信息的吗?" + vbCrLf + vbCrLf + "如果您想让我帮您24小时自动转发" + vbCrLf + vbCrLf + "您可以参照以下格式" + vbCrLf + vbCrLf + "举例:@车寻人@18:00@1358176****@六里桥回*。余3座"
+            sendMesssage group, "大家好，有发布拼车信息的吗?" + vbCrLf + vbCrLf + "如果您想让我帮您发信息" + vbCrLf + vbCrLf + "您可以参照以下格式" + vbCrLf + vbCrLf + "举例:@车寻人@18:00@1761030****@六里桥回*。余3座"
         End If
         rs.MoveNext
     Wend
@@ -303,10 +304,35 @@ errh:
 End Function
 
 Public Function sendMesssage(group As String, content As String)
+    content = filterContent(content)
     If content <> "" Then
         Dim ZC() As Byte
         ZC = StrTByte(content)
         CQ_sendGroupMsg MainModule.ac, group / 10000, VarPtr(ZC(0))
     End If
+End Function
+
+
+Public Function filterContent(content As String) As String
+    On Error GoTo errh
+    Dim filter1 As String
+    Dim filter2 As String
+    Dim i As Integer
+    
+    
+    filter1 = "*电话*手机*预约*加群*日赚*红包群*加Q*加q*包补*诚聘*代购*放心购买*QQ群发*有意私聊*接单*任何费用*收徒*淘宝交易*招聘*要的加*低价*业务电话*转让*工资日结*现金交易*代刷*返红包*业务QQ*代价*刷钻*开钻*供货*招收*带价*免费兼职*赶快加入*如有打扰*提供货源*负责售后*火爆出售中*请+q*有需求的可以*的赚钱*寻大量*找代理*招代理*寻合作*正规开票*群里不回*网赚*可购买*欢迎加盟*推荐奖金*刷Q*兼职*点击网址*有需要做*要求能上网*急聘*免费刷*包赚*群号码*要的联系*卡盟*微信公众平台*精品课程"
+    filter2 = "*中共*民主*共产党*中国共产党*胡锦涛*反共*反党*反国家*游行*集会*强奸*走私*强暴*套套*摇头丸*白粉*冰毒*海洛因*假/钞*人民币*假币*操*我日*干你*我操*操你*操你妈*干你妈*傻逼*大逼*高潮*鸡鸡*鸡巴*做爱*打炮*打洞*插入*抽插*贱人*贱逼*骚逼*牛逼*妈的*他妈的*"
+    
+    Dim data() As String
+    data = split(filter1, "*")
+    For i = 0 To UBound(data)
+        content = Replace(content, data(i), "")
+    Next i
+    data = split(filter2, "*")
+    For i = 0 To UBound(data)
+        content = Replace(content, data(i), "")
+    Next i
+    filterContent = content
+errh:
 End Function
 
