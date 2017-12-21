@@ -39,7 +39,7 @@ Public Function parse(content As String, group As String, qq As String) As Strin
     
     db.writeLog content
 
-    If content = "拼车信息" Then
+    If content = "拼车信息" Or content = "拼车" Then
         parse = db.queryInfo(group)
         If parse = "" Then
             parse = getNoDataMsg(qq)
@@ -81,8 +81,9 @@ Public Function parse(content As String, group As String, qq As String) As Strin
     If UBound(data) = 0 Then
         Exit Function
     End If
-    
-    If data(1) = "车寻人" Or data(1) = "车找人" Then
+    Dim command As String
+    command = Trim(data(1))
+    If command = "车寻人" Or command = "车找人" Then
         time = getTime(data(2))
         mobile = getUserPhone(content)
         If time <> "" And mobile <> "" Then
@@ -94,7 +95,7 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         End If
         Exit Function
     End If
-    If data(1) = "人寻车" Or data(1) = "人找车" Then
+    If command = "人寻车" Or command = "人找车" Then
         time = getTime(data(2))
         mobile = getUserPhone(content)
         If time <> "" And mobile <> "" Then
@@ -110,7 +111,7 @@ errh:
 End Function
 
 Private Function getErrMsg(qq As String) As String
-    getErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + vbCrLf + "您的信息我无法识别,如果您想让我帮您登记" + vbCrLf + vbCrLf + "您可以按此格式重新发:@人寻车@时间@电话@内容" + vbCrLf + vbCrLf + "举例:@车寻人@18:00@1358176****@六里桥回易县。余3座"
+    getErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + vbCrLf + "您的信息我无法识别,如果您想让我帮您24小时自动转发" + vbCrLf + vbCrLf + "您可以参照以下格式" + vbCrLf + vbCrLf + "举例:@车寻人@18:00@1358176****@六里桥回*。余3座"
 End Function
 
 Private Function getNoDataMsg(qq As String) As String
@@ -140,6 +141,7 @@ errh:
 End Function
 Private Function getTime(content As String) As String
     On Error GoTo errh:
+    content = Trim(content)
     If (InStr(content, ":") > 0 Or InStr(content, ".") > 0 Or InStr(content, "：") > 0) Or InStr(content, "点") > 0 Then
         Dim time As String
         Dim isTommorrow As Boolean
@@ -149,20 +151,32 @@ Private Function getTime(content As String) As String
             isTommorrow = True
         End If
         time = content
+        time = Replace(time, "一", "1")
+        time = Replace(time, "二", "2")
+        
+        time = Replace(time, "三", "3")
+        
+        time = Replace(time, "四", "4")
+        time = Replace(time, "五", "5")
+        time = Replace(time, "六", "6")
+        time = Replace(time, "七", "7")
+        time = Replace(time, "八", "8")
+        time = Replace(time, "九", "9")
         time = Replace(time, ".", ":")
         time = Replace(time, "：", ":")
         time = Replace(time, "点", ":")
         time = Replace(time, "今天", "上午")
         time = Replace(time, "今晚", "下午")
         time = Replace(time, "晚上", "下午")
-        time = Replace(time, "晚", "下午")
-        time = Replace(time, "早晨", "上午")
-        time = Replace(time, "早上", "上午")
-        
         time = Replace(time, "明天", "")
         time = Replace(time, "明晚", "下午")
         time = Replace(time, "明早", "上午")
         time = Replace(time, "左右", "")
+        time = Replace(time, "晚", "下午")
+        time = Replace(time, "早晨", "上午")
+        time = Replace(time, "早上", "上午")
+        
+
         
         Dim data() As String
         data = split(time, ":")

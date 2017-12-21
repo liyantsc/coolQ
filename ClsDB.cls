@@ -282,6 +282,8 @@ Public Function autoSend() As Boolean
         If content <> "" Then
             sendMesssage group, content
             Sleep 500
+        Else
+            sendMesssage group, "大家好，有发布拼车信息的吗?" + vbCrLf + vbCrLf + "如果您想让我帮您24小时自动转发" + vbCrLf + vbCrLf + "您可以参照以下格式" + vbCrLf + vbCrLf + "举例:@车寻人@18:00@1358176****@六里桥回*。余3座"
         End If
         rs.MoveNext
     Wend
