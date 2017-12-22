@@ -10,6 +10,11 @@ Begin VB.Form FrmMain
    ScaleHeight     =   3015
    ScaleWidth      =   4560
    StartUpPosition =   3  '´°¿ÚÈ±Ê¡
+   Begin VB.Timer Timer3 
+      Interval        =   999
+      Left            =   1215
+      Top             =   2565
+   End
    Begin VB.Timer Timer2 
       Interval        =   5000
       Left            =   3000
@@ -36,4 +41,9 @@ Private Sub Timer2_Timer()
     Timer2.Interval = 0
     db.autoSend
     Timer2.Interval = 5000
+End Sub
+
+Private Sub Timer3_Timer()
+    db.waitSend
+    
 End Sub

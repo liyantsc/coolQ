@@ -14,8 +14,12 @@ Attribute VB_Exposed = False
 Option Explicit
 Private Conn As New ADODB.Connection
 
-Const TIME_INTERVAL = 30
+Const TIME_INTERVAL = 60
 Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
+Private Declare Function GetTickCount Lib "kernel32" () As Long
+
+Private data As New Dictionary
+
 
 Private Function getNextTime()
     getNextTime = Format(DateAdd("n", TIME_INTERVAL, Now), "yyyy-mm-dd hh:mm")
@@ -93,6 +97,32 @@ errh:
     delMsg = False
 End Function
 
+Public Function delMsgInfo(group As String, qq As String) As Boolean
+    On Error GoTo errh
+    getDb.Execute "delete from msginfo where [qq]='" + qq + "'"
+    delMsgInfo = True
+    Exit Function
+errh:
+    delMsgInfo = False
+End Function
+
+
+Public Function insertMsgInfo(group As String, qq As String, content As String) As Boolean
+    On Error GoTo errh
+    
+    delMsgInfo group, qq
+    Dim sql As String
+    Dim time As String
+    time = Format(Now, "yyyy-mm-dd" + " 23:59")
+    sql = "insert into msginfo([qq],[group],[time],[content]) values('" + qq + "','" + group + "','" + time + "','" + content + "')"
+    getDb.Execute sql
+    insertMsgInfo = True
+    Exit Function
+errh:
+    insertMsgInfo = False
+    writeLog sql
+End Function
+
 Public Function delGroupId(groupid As String) As Boolean
     On Error GoTo errh
     getDb.Execute "delete from groupinfo where [groupid]='" + groupid + "'"
@@ -156,7 +186,7 @@ Public Function queryInfo(groupid As String) As String
         While Not rs.EOF
             index = index + 1
 
-            content = content & getContent(index, rs)
+            content = content & getContent(index, rs) + vbCrLf + vbCrLf
 
             rs.MoveNext
         Wend
@@ -209,7 +239,10 @@ End Function
 Public Function search(group As String, key As String) As String
     On Error GoTo errh
     Dim rs As New ADODB.Recordset
-    writeLog "搜索" + key
+    If key = "" Then
+        search = ""
+        Exit Function
+    End If
     rs.Open "select * from msgdata where [group]='" + group + "' and content like '%" + key + "%'order by type+time", getDb
     If Not (rs.EOF And rs.BOF) Then
         Dim index As Integer
@@ -220,7 +253,9 @@ Public Function search(group As String, key As String) As String
         While Not rs.EOF
             index = index + 1
 
-            content = content & getContent(index, rs)
+            If index < 10 Then
+                content = content & getContent(index, rs) & vbCrLf & vbCrLf
+            End If
 
             rs.MoveNext
         Wend
@@ -230,12 +265,49 @@ Public Function search(group As String, key As String) As String
         Dim allContent As String
         allContent = begin & content
         
-        search = allContent
+        search = allContent & searchOther(key)
+    Else
+        search = searchOther(key)
     End If
     rs.Close
 errh:
 End Function
 
+Private Function searchOther(key As String) As String
+    On Error GoTo errh
+
+    Dim rs As New ADODB.Recordset
+    rs.Open "select * from msginfo where content like '%" + key + "%'", getDb
+    If Not (rs.EOF And rs.BOF) Then
+        Dim index As Integer
+        Dim content As String
+        index = 0
+        Dim strTime As String
+        
+        While Not rs.EOF
+            index = index + 1
+
+            If index < 10 Then
+            
+                content = content & index & "、" + rs.Fields("content") + vbCrLf + vbCrLf
+            End If
+
+            rs.MoveNext
+        Wend
+
+        Dim begin As String
+        begin = "[" + key + "]还有以下信息可以参考:" + vbCrLf + vbCrLf + "===(" & index & "条)===" & vbCrLf & vbCrLf
+        Dim allContent As String
+        Dim endstr As String
+        endstr = "以上信息仅供参考"
+        allContent = begin & content + endstr
+
+        
+        searchOther = allContent
+    End If
+    rs.Close
+errh:
+End Function
 
 Private Function getContent(index As Integer, rs As ADODB.Recordset) As String
     Dim strTime As String
@@ -257,7 +329,7 @@ Private Function getContent(index As Integer, rs As ADODB.Recordset) As String
         emoji = "[CQ:emoji,id=128107]"
     End If
     
-    getContent = index & "" & emoji & strTime & "" & "[CQ:emoji,id=9742]" & rs.Fields("mobile") & vbCrLf & rs.Fields("content") & vbCrLf & vbCrLf
+    getContent = index & "" & emoji & strTime & "" & "[CQ:emoji,id=9742]" & rs.Fields("mobile") & vbCrLf & rs.Fields("content")
 
 End Function
 
@@ -266,6 +338,7 @@ Public Function delTimeout() As Boolean
     Dim time As String
     time = Format(Now, "yyyy-mm-dd hh:mm")
     getDb.Execute "delete from msgdata where time<'" + time + "'"
+    getDb.Execute "delete from msginfo where time<'" + time + "'"
 End Function
 
 Public Function autoSend() As Boolean
@@ -275,21 +348,34 @@ Public Function autoSend() As Boolean
     Dim rs As New ADODB.Recordset
     
     Dim group As String
+
     time = Format(Now, "yyyy-mm-dd hh:mm")
     rs.Open "select * from groupinfo where time<='" + time + "'", db.getDb
     While Not rs.EOF
         group = rs.Fields("groupid") + ""
         content = queryInfo(group)
         If content <> "" Then
-            sendMesssage group, content
-            Sleep 500
+            If isLingCheng = False Then
+                addMessage group, content
+            End If
         Else
-            sendMesssage group, "大家好，有发布拼车信息的吗?" + vbCrLf + vbCrLf + "如果您想让我帮您发信息" + vbCrLf + vbCrLf + "您可以参照以下格式" + vbCrLf + vbCrLf + "举例:@车寻人@18:00@1761030****@六里桥回*。余3座"
+            If isLingCheng = False Then
+                addMessage group, "大家好，有发布拼车信息的吗?" + vbCrLf + "您可以参照以下格式" + vbCrLf + "举例:@车寻人@18:00@1761030****@六里桥回*。余3座"
+            End If
         End If
         rs.MoveNext
     Wend
     rs.Close
 errh:
+End Function
+
+Private Function isLingCheng() As Boolean
+    Dim hour As Integer
+    hour = Format(Now, "hh")
+    '10点以后，或者凌晨，就不发送消息了
+    If hour > 22 Or (hour >= 0 And hour <= 7) Then
+        isLingCheng = True
+    End If
 End Function
 
 Public Function queryGroup(group As String) As Boolean
@@ -311,6 +397,26 @@ Public Function sendMesssage(group As String, content As String)
         CQ_sendGroupMsg MainModule.ac, group / 10000, VarPtr(ZC(0))
     End If
 End Function
+
+
+Public Function addMessage(group As String, content As String)
+    On Error Resume Next
+    Dim clsMsg As New MsgObj
+    clsMsg.target = group
+    clsMsg.content = content
+    Randomize Timer
+    data.Add group & GetTickCount, clsMsg
+End Function
+
+Public Sub waitSend()
+    On Error Resume Next
+    Dim msg As MsgObj
+    If data.Count > 0 Then
+        Set msg = data.Item(data.Keys(0))
+        data.Remove data.Keys(0)
+        sendMesssage msg.target, msg.content
+    End If
+End Sub
 
 
 Public Function filterContent(content As String) As String

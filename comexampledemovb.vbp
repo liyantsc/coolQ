@@ -15,6 +15,7 @@ Form=FrmSetting.frm
 Form=FrmAdd.frm
 Form=FrmGroupSet.frm
 Form=FrmTest.frm
+Class=MsgObj; MsgObj.cls
 Startup="Sub Main"
 HelpFile=""
 Title="com.example.demovb"

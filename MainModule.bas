@@ -87,7 +87,7 @@ Public Function eventGroupMsg(ByVal subType As Long, ByVal sendTime As Long, ByV
         
     content = split.parse(pGetStringFromPtr(msg), fromGroup * 10000, fromQQ * 10000)
     
-    db.sendMesssage fromGroup * 10000, content
+    db.addMessage fromGroup * 10000, content
 '    content = Replace(content, "电话", "")
 '    ontent = Replace(content, "手机", "")
 '    If content <> "" Then

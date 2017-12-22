@@ -30,6 +30,10 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         Exit Function
     End If
     
+    If InStr(content, "找人") > 0 Or InStr(content, "车寻人") Or InStr(content, "私家车") Then
+        db.insertMsgInfo group, qq, content
+    End If
+    
     If Not (db.queryGroup(group)) Then
         Exit Function
     End If
@@ -41,7 +45,7 @@ Public Function parse(content As String, group As String, qq As String) As Strin
     Dim mobile As String
     Dim dateTime As Date
     
-    db.writeLog content
+
 
     If content = "拼车信息" Or content = "拼车" Then
         parse = db.queryInfo(group)
@@ -115,7 +119,7 @@ errh:
 End Function
 
 Private Function getErrMsg(qq As String) As String
-    getErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + vbCrLf + "您的信息我无法识别,如果您想让我帮您发信息" + vbCrLf + vbCrLf + "您可以参照以下格式" + vbCrLf + vbCrLf + "举例:@车寻人@18:00@1761030****@六里桥回*。余3座"
+    getErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + vbCrLf + "您的信息我无法识别" + vbCrLf + "您可以参照以下格式" + vbCrLf + "举例:@车寻人@18:00@1761030****@六里桥回*。余3座"
 End Function
 
 Private Function getNoDataMsg(qq As String) As String
@@ -149,12 +153,16 @@ Private Function getTime(content As String) As String
     If (InStr(content, ":") > 0 Or InStr(content, ".") > 0 Or InStr(content, "：") > 0) Or InStr(content, "点") > 0 Then
         Dim time As String
         Dim isTommorrow As Boolean
-
+        Dim isTommorrowTommorrow As Boolean
         
         If InStr(content, "明") Then
             isTommorrow = True
         End If
-        time = content
+        If InStr(content, "后天") Then
+            isTommorrowTommorrow = True
+        End If
+        time = replaceWeek(content)
+        
         time = Replace(time, "一", "1")
         time = Replace(time, "二", "2")
         
@@ -174,9 +182,12 @@ Private Function getTime(content As String) As String
         time = Replace(time, "晚上", "下午")
         time = Replace(time, "明天", "")
         time = Replace(time, "明晚", "下午")
+        time = Replace(time, "后天", "")
         time = Replace(time, "明早", "上午")
         time = Replace(time, "左右", "")
         time = Replace(time, "晚", "下午")
+        time = Replace(time, "明", "下午")
+        time = Replace(time, "今", "下午")
         time = Replace(time, "早晨", "上午")
         time = Replace(time, "早上", "上午")
         
@@ -192,12 +203,16 @@ Private Function getTime(content As String) As String
         If data(1) = "" Then
             time = time + "00"
         End If
-        
-        
-        time = Format(time, "hh:mm")
-        time = Format(Now, "yyyy-mm-dd") + " " + time
+        If InStr(time, "-") Then
+            time = Format(time, "yyyy-mm-dd hh:mm")
+        Else
+            time = Format(Format(Now, "yyyy-mm-dd") + " " + time, "yyyy-mm-dd hh:mm")
+        End If
         If isTommorrow Then
             time = DateAdd("d", 1, time)
+        End If
+        If isTommorrowTommorrow Then
+            time = DateAdd("d", 2, time)
         End If
         time = Format(time, "yyyy-mm-dd hh:mm")
     End If
@@ -206,6 +221,26 @@ Private Function getTime(content As String) As String
 errh:
     getTime = ""
 End Function
+
+Private Function replaceWeek(content As String) As String
+    Dim day As Integer
+    day = Weekday(Now)
+    
+    content = Replace(content, "周一", fomratDateToDay(DateAdd("d", Abs(2 - day), Now)))
+    content = Replace(content, "周二", fomratDateToDay(DateAdd("d", Abs(3 - day), Now)))
+    content = Replace(content, "周三", fomratDateToDay(DateAdd("d", Abs(4 - day), Now)))
+    content = Replace(content, "周四", fomratDateToDay(DateAdd("d", Abs(5 - day), Now)))
+    content = Replace(content, "周五", fomratDateToDay(DateAdd("d", Abs(6 - day), Now)))
+    content = Replace(content, "周六", fomratDateToDay(DateAdd("d", Abs(7 - day), Now)))
+    content = Replace(content, "周日", fomratDateToDay(DateAdd("d", Abs(1 - day), Now)))
+    
+    replaceWeek = content
+End Function
+
+Private Function fomratDateToDay(content As String) As String
+    fomratDateToDay = Format(content, "yyyy-mm-dd ")
+End Function
+
 
 'Private Function getTodayTime(ByVal time As String) As String
 '    On Error GoTo errh
