@@ -253,7 +253,7 @@ Public Function search(group As String, key As String) As String
         While Not rs.EOF
             index = index + 1
 
-            If index < 10 Then
+            If index <= 5 Then
                 content = content & getContent(index, rs) & vbCrLf & vbCrLf
             End If
 
@@ -261,7 +261,7 @@ Public Function search(group As String, key As String) As String
         Wend
 
         Dim begin As String
-        begin = "[" + key + "]搜索结果:" + vbCrLf + vbCrLf + "===拼车消息(" & index & "条)按发车先后==" & vbCrLf & vbCrLf
+        begin = "[" + key + "]搜索结果:" + vbCrLf + vbCrLf + "===拼车消息(" & index & "条,只显示前5条)按发车先后==" & vbCrLf & vbCrLf
         Dim allContent As String
         allContent = begin & content
         
@@ -287,7 +287,7 @@ Private Function searchOther(key As String) As String
         While Not rs.EOF
             index = index + 1
 
-            If index < 10 Then
+            If index <= 5 Then
             
                 content = content & index & "、" + rs.Fields("content") + vbCrLf + vbCrLf
             End If
@@ -296,7 +296,7 @@ Private Function searchOther(key As String) As String
         Wend
 
         Dim begin As String
-        begin = "[" + key + "]还有以下信息可以参考:" + vbCrLf + vbCrLf + "===(" & index & "条)===" & vbCrLf & vbCrLf
+        begin = "[" + key + "]还有以下信息可以参考:" + vbCrLf + vbCrLf + "===(" & index & "条,只显示前5条)===" & vbCrLf & vbCrLf
         Dim allContent As String
         Dim endstr As String
         endstr = "以上信息仅供参考"
@@ -360,7 +360,7 @@ Public Function autoSend() As Boolean
             End If
         Else
             If isLingCheng = False Then
-                addMessage group, "大家好，有发布拼车信息的吗?" + vbCrLf + "您可以参照以下格式" + vbCrLf + "举例:@车寻人@18:00@1761030****@六里桥回*。余3座"
+                addMessage group, "大家好，有发布拼车信息的吗?"
             End If
         End If
         rs.MoveNext
