@@ -243,6 +243,7 @@ Public Function search(group As String, key As String) As String
         search = ""
         Exit Function
     End If
+    key = Trim(key)
     rs.Open "select * from msgdata where [group]='" + group + "' and content like '%" + key + "%'order by type+time", getDb
     If Not (rs.EOF And rs.BOF) Then
         Dim index As Integer
@@ -317,8 +318,10 @@ Private Function getContent(index As Integer, rs As ADODB.Recordset) As String
     strTime = rs.Fields("time") + ""
     If Format(strTime, "yyyy-mm-dd") = Format(Now, "yyyy-mm-dd") Then
         strTime = "½ñ" & Format(strTime, "hh:mm")
-    Else
+    ElseIf Format(strTime, "yyyy-mm-dd") = Format(DateAdd("d", Now, 1), "yyyy-mm-dd") Then
         strTime = "Ã÷" & Format(strTime, "hh:mm")
+    Else
+        strTime = strTime
     End If
     strtype = rs.Fields("type")
 

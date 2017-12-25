@@ -56,17 +56,17 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         End If
         Exit Function
     End If
-    If Left(content, 2) = "ËÑ " Then
-        data = split(content, " ")
-        If UBound(data) = 1 Then
-            parse = db.search(group, data(1))
+    If Left(content, 1) = "ËÑ" Then
+        Dim keyword As String
+        keyword = Mid(content, 2)
+        If keyword <> "" Then
+            parse = db.search(group, keyword)
             If parse = "" Then
                 parse = getNoDataMsg(qq)
             Else
                 parse = "[CQ:at,qq=" & qq & "]" + vbCrLf + vbCrLf + parse
             End If
         End If
-
         Exit Function
     End If
     If content = "³µÂú" Or content = "É¾³ý" Then
