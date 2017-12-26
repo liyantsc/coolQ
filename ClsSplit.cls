@@ -205,6 +205,8 @@ Private Function getTime(content As String) As String
         End If
         If InStr(time, "-") Then
             time = Format(time, "yyyy-mm-dd hh:mm")
+            time = Replace(time, "ионГ", "")
+            time = Replace(time, "обнГ", "")
         Else
             time = Format(Format(Now, "yyyy-mm-dd") + " " + time, "yyyy-mm-dd hh:mm")
         End If

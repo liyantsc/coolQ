@@ -244,7 +244,7 @@ Public Function search(group As String, key As String) As String
         Exit Function
     End If
     key = Trim(key)
-    rs.Open "select * from msgdata where [group]='" + group + "' and content like '%" + key + "%'order by type+time", getDb
+    rs.Open "select * from msgdata where [group]='" + group + "' and " & splitKeyWord(key) & " order by type+time", getDb
     If Not (rs.EOF And rs.BOF) Then
         Dim index As Integer
         Dim content As String
@@ -274,11 +274,35 @@ Public Function search(group As String, key As String) As String
 errh:
 End Function
 
+Private Function splitKeyWord(key As String) As String
+    On Error GoTo errh
+    If key = "" Then
+        Exit Function
+    End If
+    Dim data() As String
+    data = split(key, " ")
+    Dim i As Integer
+    Dim filter As String
+    For i = 0 To UBound(data)
+        If data(i) <> "" Then
+            If filter <> "" Then
+                filter = filter & " and "
+            End If
+            filter = filter & " content like '%" + data(i) + "%' "
+        End If
+    Next i
+    splitKeyWord = filter
+errh:
+    
+End Function
+
 Private Function searchOther(key As String) As String
     On Error GoTo errh
-
+    If key = "" Then
+        Exit Function
+    End If
     Dim rs As New ADODB.Recordset
-    rs.Open "select * from msginfo where content like '%" + key + "%'", getDb
+    rs.Open "select * from msginfo where " & splitKeyWord(key), getDb
     If Not (rs.EOF And rs.BOF) Then
         Dim index As Integer
         Dim content As String
