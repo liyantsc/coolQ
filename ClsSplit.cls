@@ -81,7 +81,7 @@ Public Function parse(content As String, group As String, qq As String) As Strin
     If InStr(content, "车找人") > 0 Or InStr(content, "车寻人") > 0 Or InStr(content, "人寻车") > 0 Or InStr(content, "人找车") > 0 Then
         data = split(content, "@")
         If UBound(data) < 2 Then
-            parse = getErrMsg(qq)
+            parse = getErrMsg(qq, "", "")
             Exit Function
         End If
     End If
@@ -97,9 +97,9 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         If time <> "" And mobile <> "" Then
             db.insertCheMsg group, qq, mobile, time, content
             
-            parse = "[CQ:at,qq=" & qq & "] 登记成功" & vbCrLf & "发车时间:" & time
+            parse = "[CQ:at,qq=" & qq & "] 登记成功" & vbCrLf & "发车时间:" & time + vbCrLf + vbCrLf + "取消登记请发送 删除"
         Else
-            parse = getErrMsg(qq)
+            parse = getErrMsg(qq, time, mobile)
         End If
         Exit Function
     End If
@@ -108,9 +108,9 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         mobile = getUserPhone(content)
         If time <> "" And mobile <> "" Then
             db.insertRenMsg group, qq, mobile, time, content
-            parse = "[CQ:at,qq=" & qq & "] 登记成功" & vbCrLf & "坐车时间:" & time
+            parse = "[CQ:at,qq=" & qq & "] 登记成功" & vbCrLf & "坐车时间:" & time + vbCrLf + vbCrLf + "取消登记请发送 删除"
         Else
-            parse = getErrMsg(qq)
+            parse = getErrMsg(qq, time, mobile)
         End If
         Exit Function
     End If
@@ -118,7 +118,15 @@ errh:
     
 End Function
 
-Private Function getErrMsg(qq As String) As String
+Private Function getErrMsg(qq As String, time As String, mobile As String) As String
+    If time = "" Then
+        getErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + vbCrLf + "未识别到发车时间" + vbCrLf + "您可以参照以下格式" + vbCrLf + "举例:@车寻人@18:00@1761030****@六里桥回*。余3座"
+        Exit Function
+    End If
+    If mobile = "" Then
+        getErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + vbCrLf + "未识别到联系方式" + vbCrLf + "您可以参照以下格式" + vbCrLf + "举例:@车寻人@18:00@1761030****@六里桥回*。余3座"
+        Exit Function
+    End If
     getErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + vbCrLf + "您的信息我无法识别" + vbCrLf + "您可以参照以下格式" + vbCrLf + "举例:@车寻人@18:00@1761030****@六里桥回*。余3座"
 End Function
 
@@ -162,53 +170,14 @@ Private Function getTime(content As String) As String
             isTommorrowTommorrow = True
         End If
         time = replaceWeek(content)
-        
-        time = Replace(time, "一", "1")
-        time = Replace(time, "二", "2")
-        
-        time = Replace(time, "三", "3")
-        
-        time = Replace(time, "四", "4")
-        time = Replace(time, "五", "5")
-        time = Replace(time, "六", "6")
-        time = Replace(time, "七", "7")
-        time = Replace(time, "八", "8")
-        time = Replace(time, "九", "9")
-        time = Replace(time, ".", ":")
-        time = Replace(time, "：", ":")
-        time = Replace(time, "点", ":")
-        time = Replace(time, "今天", "上午")
-        time = Replace(time, "今晚", "下午")
-        time = Replace(time, "晚上", "下午")
-        time = Replace(time, "明天", "")
-        time = Replace(time, "明晚", "下午")
-        time = Replace(time, "后天", "")
-        time = Replace(time, "明早", "上午")
-        time = Replace(time, "左右", "")
-        time = Replace(time, "晚", "下午")
-        time = Replace(time, "明", "下午")
-        time = Replace(time, "今", "下午")
-        time = Replace(time, "早晨", "上午")
-        time = Replace(time, "早上", "上午")
-        
 
-        
-        Dim data() As String
-        data = split(time, ":")
-        If UBound(data) <> 1 Then
-            getTime = ""
-            Exit Function
-        End If
-        
-        If data(1) = "" Then
-            time = time + "00"
-        End If
         If InStr(time, "-") Then
             time = Format(time, "yyyy-mm-dd hh:mm")
-            time = Replace(time, "上午", "")
-            time = Replace(time, "下午", "")
+            Dim data() As String
+            data = split(time, " ")
+            time = data(0) & getHourMinuteTime(data(1))
         Else
-            time = Format(Format(Now, "yyyy-mm-dd") + " " + time, "yyyy-mm-dd hh:mm")
+            time = Format(Format(Now, "yyyy-mm-dd") + " " + getHourMinuteTime(time), "yyyy-mm-dd hh:mm")
         End If
         If isTommorrow Then
             time = DateAdd("d", 1, time)
@@ -222,6 +191,52 @@ Private Function getTime(content As String) As String
     Exit Function
 errh:
     getTime = ""
+End Function
+
+Private Function getHourMinuteTime(time As String) As String
+    On Error GoTo errh:
+    time = Replace(time, "一", "1")
+    time = Replace(time, "二", "2")
+    
+    time = Replace(time, "三", "3")
+    
+    time = Replace(time, "四", "4")
+    time = Replace(time, "五", "5")
+    time = Replace(time, "六", "6")
+    time = Replace(time, "七", "7")
+    time = Replace(time, "八", "8")
+    time = Replace(time, "九", "9")
+    time = Replace(time, ".", ":")
+    time = Replace(time, "：", ":")
+    time = Replace(time, "点", ":")
+    time = Replace(time, "今天", "上午")
+    time = Replace(time, "今晚", "下午")
+    time = Replace(time, "晚上", "下午")
+    time = Replace(time, "明天", "")
+    time = Replace(time, "明晚", "下午")
+    time = Replace(time, "后天", "")
+    time = Replace(time, "明早", "上午")
+    time = Replace(time, "左右", "")
+    time = Replace(time, "晚", "下午")
+    time = Replace(time, "明", "下午")
+    time = Replace(time, "今", "下午")
+    time = Replace(time, "早晨", "上午")
+    time = Replace(time, "早上", "上午")
+    
+
+    
+    Dim data() As String
+    data = split(time, ":")
+    If UBound(data) <> 1 Then
+        Exit Function
+    End If
+    
+    If data(1) = "" Then
+        time = time + "00"
+    End If
+    getHourMinuteTime = time
+errh:
+    
 End Function
 
 Private Function replaceWeek(content As String) As String

@@ -195,7 +195,7 @@ Public Function queryInfo(groupid As String) As String
 
         begin = "===拼车消息(" & index & "条)按发车先后==" & vbCrLf & vbCrLf
         Dim endstr As String
-        endstr = "下次转发时间:" & Format(getNextTime, "hh点mm分") & ",车满请发送:车满"
+        endstr = "下次转发时间:" & Format(getNextTime, "hh点mm分") & ",取消登记请发送 删除"
         Dim allContent As String
         allContent = begin & content & endstr
         queryInfo = allContent
@@ -321,7 +321,7 @@ Private Function searchOther(key As String) As String
         Wend
 
         Dim begin As String
-        begin = "[" + key + "]还有以下信息可以参考:" + vbCrLf + vbCrLf + "===(" & index & "条,只显示前5条)===" & vbCrLf & vbCrLf
+        begin = "[" + key + "]还有以下信息可以参考:" + vbCrLf + vbCrLf + "===(" & index & "条,最多显示5条)===" & vbCrLf & vbCrLf
         Dim allContent As String
         Dim endstr As String
         endstr = "以上信息仅供参考"
