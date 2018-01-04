@@ -56,6 +56,34 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         End If
         Exit Function
     End If
+    If content = "京昆" Or UCase(content) = "G5" Or content = "京昆高速" Then
+        FrmMain.queryLuKuang "http://gsgl.00cha.com/G5.html", qq, group
+        Exit Function
+    End If
+    If content = "京港澳" Or UCase(content) = "G4" Or content = "京港澳高速" Then
+        FrmMain.queryLuKuang "http://gsgl.00cha.com/G4.html", qq, group
+        Exit Function
+    End If
+    If content = "京哈" Or UCase(content) = "G1" Or content = "京哈高速" Then
+        FrmMain.queryLuKuang "http://gsgl.00cha.com/G1.html", qq, group
+        Exit Function
+    End If
+    If content = "京沪" Or UCase(content) = "G2" Or content = "京沪高速" Then
+        FrmMain.queryLuKuang "http://gsgl.00cha.com/G2.html", qq, group
+        Exit Function
+    End If
+    If content = "京台" Or UCase(content) = "G3" Or content = "京台高速" Then
+        FrmMain.queryLuKuang "http://gsgl.00cha.com/G3.html", qq, group
+        Exit Function
+    End If
+    If content = "京藏" Or UCase(content) = "G6" Or content = "京藏高速" Then
+        FrmMain.queryLuKuang "http://gsgl.00cha.com/G6.html", qq, group
+        Exit Function
+    End If
+    If content = "京新" Or UCase(content) = "G7" Or content = "京新高速" Then
+        FrmMain.queryLuKuang "http://gsgl.00cha.com/G7.html", qq, group
+        Exit Function
+    End If
     If Left(content, 1) = "搜" Then
         Dim keyword As String
         keyword = Mid(content, 2)
@@ -155,6 +183,35 @@ Public Function getUserPhone(ByVal TempStr As String) As String
     getUserPhone = temp
 errh:
 End Function
+
+Public Function parseLuKuang(Document As Object, qq As String, group As String) As String
+
+    On Error GoTo errh
+    Dim body
+    If IsEmpty(Document) Then
+        Exit Function
+    End If
+    Dim content As String
+    Dim count As Integer
+    
+    For Each body In Document.getElementsByTagName("div")
+        If body.classname = "sj" Then
+            If content <> "" Then
+                content = content + vbCrLf + vbCrLf
+            End If
+            content = content + body.outertext
+            count = count + 1
+            If count >= 8 Then
+                Exit For
+            End If
+        End If
+    Next
+    If content <> "" Then
+        parseLuKuang = "[CQ:at,qq=" & qq & "]" & vbCrLf & content
+    End If
+errh:
+    
+End Function
 Private Function getTime(content As String) As String
     On Error GoTo errh:
     content = Trim(content)
@@ -186,6 +243,19 @@ Private Function getTime(content As String) As String
             time = DateAdd("d", 2, time)
         End If
         time = Format(time, "yyyy-mm-dd hh:mm")
+        time = Replace(time, "今天", "")
+        time = Replace(time, "今晚", "")
+        time = Replace(time, "晚上", "")
+        time = Replace(time, "明天", "")
+        time = Replace(time, "明晚", "")
+        time = Replace(time, "后天", "")
+        time = Replace(time, "明早", "")
+        time = Replace(time, "左右", "")
+        time = Replace(time, "晚", "")
+        time = Replace(time, "明", "")
+        time = Replace(time, "今", "")
+        time = Replace(time, "早晨", "")
+        time = Replace(time, "早上", "")
     End If
     getTime = time
     Exit Function

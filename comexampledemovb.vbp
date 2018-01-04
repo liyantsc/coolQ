@@ -16,6 +16,7 @@ Form=FrmAdd.frm
 Form=FrmGroupSet.frm
 Form=FrmTest.frm
 Class=MsgObj; MsgObj.cls
+Object={EAB22AC0-30C1-11CF-A7EB-0000C05BAE0B}#1.1#0; ieframe.dll
 Startup="Sub Main"
 HelpFile=""
 Title="com.example.demovb"

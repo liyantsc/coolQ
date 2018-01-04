@@ -347,6 +347,8 @@ Private Function getContent(index As Integer, rs As ADODB.Recordset) As String
     Else
         strTime = strTime
     End If
+    strTime = Replace(strTime, "ионГ", "")
+    strTime = Replace(strTime, "обнГ", "")
     strtype = rs.Fields("type")
 
 

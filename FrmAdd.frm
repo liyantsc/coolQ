@@ -80,7 +80,9 @@ Private Sub Ôö¼Ó_Click()
     Dim content As String
     
     content = clsSplit.parse(editContent.Text, Trim(group.Text), Trim(qq.Text))
-    MsgBox content
+    If (content <> "") Then
+        MsgBox content
+    End If
 
     
 End Sub
