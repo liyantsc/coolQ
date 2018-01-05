@@ -3,6 +3,8 @@ Option Explicit
 Public Declare Function lstrlen Lib "kernel32" Alias "lstrlenA" (ByVal lpString As Long) As Long
 Private Declare Function lstrcpy Lib "kernel32" Alias "lstrcpyA" (lpString1 As Any, lpString2 As Any) As Long
 
+Public Const XIANXING_URL = "http://www.bjjtgl.gov.cn/jgj/jgj_PAGE_KEY/index.html"
+
 Public Function BytesToBstr(bytes)
     On Error GoTo CuoWu
     Dim SFCW As Boolean
@@ -20,7 +22,7 @@ TG:
         .Mode = 3
         .Open
         If SFCW = False Then .Write bytes
-        .position = 0
+        .Position = 0
         .Type = 2
         .Charset = Unicode
         BytesToBstr = .ReadText

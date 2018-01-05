@@ -87,12 +87,15 @@ Public Sub queryLuKuang(url As String, qq As String, group As String)
     web.Silent = True
     web.Navigate url
 End Sub
-
 Private Sub web_DocumentComplete(ByVal pDisp As Object, url As Variant)
     On Error GoTo errh
     Dim splitTool As New clsSplit
     Dim content As String
-    content = splitTool.parseLuKuang(web.Document, strQQ, strGroup)
+    If InStr(url, "http://gsgl.00cha.com") Then
+        content = splitTool.parseLuKuang(web.Document, strQQ, strGroup, url)
+    ElseIf url = XIANXING_URL Then
+        content = splitTool.parseXianXing(web.Document, strQQ, strGroup, url)
+    End If
     If content <> "" Then
         Debug.Print content
         db.addMessage strGroup, content

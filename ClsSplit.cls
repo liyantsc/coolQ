@@ -84,6 +84,10 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         FrmMain.queryLuKuang "http://gsgl.00cha.com/G7.html", qq, group
         Exit Function
     End If
+    If content = "查限行" Then
+        FrmMain.queryLuKuang XIANXING_URL, qq, group
+        Exit Function
+    End If
     If Left(content, 1) = "搜" Then
         Dim keyword As String
         keyword = Mid(content, 2)
@@ -97,11 +101,11 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         End If
         Exit Function
     End If
-    If content = "车满" Or content = "删除" Then
+    If content = "车满" Or content = "删除" Or content = "#删除" Or content = "#车满" Then
         parse = db.queryItem(group, qq)
         If parse <> "" Then
             db.delMsg group, qq
-            parse = "[CQ:at,qq=" & qq & "]" + vbCrLf + "拼车信息:" + parse + vbCrLf + vbCrLf + "删除成功"
+            parse = "[CQ:at,qq=" & qq & "]" + vbCrLf + "拼车信息:" + parse + vbCrLf + "删除成功"
         End If
         Exit Function
     End If
@@ -125,7 +129,7 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         If time <> "" And mobile <> "" Then
             db.insertCheMsg group, qq, mobile, time, content
             
-            parse = "[CQ:at,qq=" & qq & "] 登记成功" & vbCrLf & "发车时间:" & time + vbCrLf + vbCrLf + "取消登记请发送 删除"
+            parse = "[CQ:at,qq=" & qq & "] 登记成功" & vbCrLf & "发车时间:" & time + vbCrLf + "取消登记请发送 删除"
         Else
             parse = getErrMsg(qq, time, mobile)
         End If
@@ -136,7 +140,7 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         mobile = getUserPhone(content)
         If time <> "" And mobile <> "" Then
             db.insertRenMsg group, qq, mobile, time, content
-            parse = "[CQ:at,qq=" & qq & "] 登记成功" & vbCrLf & "坐车时间:" & time + vbCrLf + vbCrLf + "取消登记请发送 删除"
+            parse = "[CQ:at,qq=" & qq & "] 登记成功" & vbCrLf & "坐车时间:" & time + vbCrLf + "取消登记请发送 删除"
         Else
             parse = getErrMsg(qq, time, mobile)
         End If
@@ -148,14 +152,14 @@ End Function
 
 Private Function getErrMsg(qq As String, time As String, mobile As String) As String
     If time = "" Then
-        getErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + vbCrLf + "未识别到发车时间" + vbCrLf + "您可以参照以下格式" + vbCrLf + "举例:@车寻人@18:00@1761030****@六里桥回*。余3座"
+        getErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "您的信息我已经帮您登记" + vbCrLf + "其他人可以搜索到您的信息" + vbCrLf + "由于未识别到发车时间，所以我不能帮您自动转发" + vbCrLf + "如果您想让我帮您自动转发" + vbCrLf + "您可以参照以下格式" + vbCrLf + "举例:@车寻人@18:00@1761030****@六里桥回*。余3座"
         Exit Function
     End If
     If mobile = "" Then
-        getErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + vbCrLf + "未识别到联系方式" + vbCrLf + "您可以参照以下格式" + vbCrLf + "举例:@车寻人@18:00@1761030****@六里桥回*。余3座"
+        getErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "您的信息我已经帮您登记" + vbCrLf + "其他人可以搜索到您的信息" + vbCrLf + "由于未识别到联系方式，所以我不能帮您自动转发" + vbCrLf + "如果您想让我帮您自动转发" + vbCrLf + "您可以参照以下格式" + vbCrLf + "举例:@车寻人@18:00@1761030****@六里桥回*。余3座"
         Exit Function
     End If
-    getErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + vbCrLf + "您的信息我无法识别" + vbCrLf + "您可以参照以下格式" + vbCrLf + "举例:@车寻人@18:00@1761030****@六里桥回*。余3座"
+    getErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "您的信息我已经帮您登记" + vbCrLf + "其他人可以搜索到您的信息" + vbCrLf + "由于您的信息我无法识别，所以我不能帮您自动转发" + vbCrLf + "如果您想让我帮您自动转发" + vbCrLf + "您可以参照以下格式" + vbCrLf + "举例:@车寻人@18:00@1761030****@六里桥回*。余3座"
 End Function
 
 Private Function getNoDataMsg(qq As String) As String
@@ -184,7 +188,7 @@ Public Function getUserPhone(ByVal TempStr As String) As String
 errh:
 End Function
 
-Public Function parseLuKuang(Document As Object, qq As String, group As String) As String
+Public Function parseLuKuang(Document As Object, qq As String, group As String, url As Variant) As String
 
     On Error GoTo errh
     Dim body
@@ -212,6 +216,33 @@ Public Function parseLuKuang(Document As Object, qq As String, group As String) 
 errh:
     
 End Function
+Public Function parseXianXing(Document As Object, qq As String, group As String, url As Variant) As String
+    On Error GoTo errh
+    If url <> XIANXING_URL Then
+        Exit Function
+    End If
+    Dim body
+    If IsEmpty(Document) Then
+        Exit Function
+    End If
+    Dim content As String
+    Dim count As Integer
+    
+    For Each body In Document.getElementsByTagName("div")
+        If body.classname = "xianhao" Then
+            If content <> "" Then
+                content = content + vbCrLf + vbCrLf
+            End If
+            content = content + body.outertext
+        End If
+    Next
+    If content <> "" Then
+        content = Replace(content, "  详情>>", "")
+        parseXianXing = "[CQ:at,qq=" & qq & "]" & vbCrLf & "限行时间：凌晨7:00至晚上20:00；限行范围：五环路(含)以内道路；车牌尾号为字母：按0号管理" + vbCrLf + content
+    End If
+errh:
+    
+End Function
 Private Function getTime(content As String) As String
     On Error GoTo errh:
     content = Trim(content)
@@ -232,7 +263,7 @@ Private Function getTime(content As String) As String
             time = Format(time, "yyyy-mm-dd hh:mm")
             Dim data() As String
             data = split(time, " ")
-            time = data(0) & getHourMinuteTime(data(1))
+            time = data(0) & " " + getHourMinuteTime(data(1))
         Else
             time = Format(Format(Now, "yyyy-mm-dd") + " " + getHourMinuteTime(time), "yyyy-mm-dd hh:mm")
         End If
@@ -243,21 +274,12 @@ Private Function getTime(content As String) As String
             time = DateAdd("d", 2, time)
         End If
         time = Format(time, "yyyy-mm-dd hh:mm")
-        time = Replace(time, "今天", "")
-        time = Replace(time, "今晚", "")
-        time = Replace(time, "晚上", "")
-        time = Replace(time, "明天", "")
-        time = Replace(time, "明晚", "")
-        time = Replace(time, "后天", "")
-        time = Replace(time, "明早", "")
-        time = Replace(time, "左右", "")
-        time = Replace(time, "晚", "")
-        time = Replace(time, "明", "")
-        time = Replace(time, "今", "")
-        time = Replace(time, "早晨", "")
-        time = Replace(time, "早上", "")
+        time = getHourMinuteTime(time)
+
     End If
-    getTime = time
+    Dim strDate As Date
+    strDate = CDate(time)
+    getTime = Format(strDate, "yyyy-mm-dd hh:mm")
     Exit Function
 errh:
     getTime = ""
@@ -292,6 +314,7 @@ Private Function getHourMinuteTime(time As String) As String
     time = Replace(time, "今", "下午")
     time = Replace(time, "早晨", "上午")
     time = Replace(time, "早上", "上午")
+    time = Replace(time, "本", "")
     
 
     
