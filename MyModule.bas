@@ -5,6 +5,8 @@ Private Declare Function lstrcpy Lib "kernel32" Alias "lstrcpyA" (lpString1 As A
 
 Public Const XIANXING_URL = "http://www.bjjtgl.gov.cn/jgj/jgj_PAGE_KEY/index.html"
 
+'Public Const LUKUANG_URL = "http://eye.bjjtw.gov.cn/Web-T_bjjt_new/Main.html"
+
 Public Function BytesToBstr(bytes)
     On Error GoTo CuoWu
     Dim SFCW As Boolean

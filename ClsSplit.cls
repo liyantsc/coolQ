@@ -45,7 +45,7 @@ Public Function parse(content As String, group As String, qq As String) As Strin
     Dim mobile As String
     Dim dateTime As Date
     
-
+    Dim keyword As String
 
     If content = "拼车信息" Or content = "拼车" Then
         parse = db.queryInfo(group)
@@ -88,12 +88,13 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         FrmMain.queryLuKuang XIANXING_URL, qq, group
         Exit Function
     End If
-    If content = "查路况" Then
-        parse = queryLuKuang(qq, group)
+    If Left(content, 3) = "查路况" Then
+        keyword = Mid(content, 4)
+        parse = queryLuKuang(qq, group, keyword)
+'        FrmMain.searchLuKuang LUKUANG_URL, qq, group, keyword
         Exit Function
     End If
     If Left(content, 1) = "搜" Then
-        Dim keyword As String
         keyword = Mid(content, 2)
         If keyword <> "" Then
             parse = db.search(group, keyword)
@@ -170,11 +171,14 @@ Private Function getNoDataMsg(qq As String) As String
     getNoDataMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + vbCrLf + "非常抱歉,暂时没有相关信息"
 End Function
 
-Private Function queryLuKuang(qq As String, group As String) As String
+Public Function queryLuKuang(qq As String, group As String, keyword As String) As String
     On Error GoTo errh
     Dim xmlHttp
     Set xmlHttp = CreateObject("Microsoft.XMLHTTP")
-    xmlHttp.Open "GET", "http://eye.bjjtw.gov.cn/Web-T_bjjt_new/query.do?serviceType=jam&acode=110000&type=3&cls=0&rcd=40", True
+    Randomize Timer
+    Dim temp As Long
+    temp = Rnd() * 9999999
+    xmlHttp.Open "GET", "http://eye.bjjtw.gov.cn/Web-T_bjjt_new/query.do?serviceType=jam&acode=110000&type=3&cls=0&rcd=40&t=" & temp, True
     xmlHttp.send (Null)
     While xmlHttp.ReadyState <> 4
         DoEvents
@@ -186,6 +190,10 @@ Private Function queryLuKuang(qq As String, group As String) As String
     End If
 
     Dim content As String
+    Dim bFind As Boolean
+    
+    Dim dict As New Dictionary
+    
     
     Dim ScriptControl As Object, roads As Object, JscriptCode$
     JscriptCode = "function toObject(json) {eval(""var o=""+json);return o;}"
@@ -200,26 +208,71 @@ Private Function queryLuKuang(qq As String, group As String) As String
         Dim txtInfo
         Dim roaditem
         Dim roadsub
+        Dim itemInfo As String
+        Dim findMain As Boolean
+        Dim findS As Boolean
+        Dim findE As Boolean
+        
         For Each item In roads.roads
             Set txtInfo = item.txtInfo
+            findMain = findKeyWord(item.road, keyword)
             For Each roaditem In txtInfo
                 For Each roadsub In roaditem.section
-                    If InStr(roadsub.info, "拥堵") > 0 Then
-                        Dim itemInfo As String
+                    findS = findKeyWord(roadsub.sName, keyword)
+                    findE = findKeyWord(roadsub.eName, keyword)
+
+                    If findMain = True Or findS = True Or findE = True Then
                         itemInfo = item.road & " " & item.time
-  
+                        
                         itemInfo = itemInfo + vbCrLf + getDirection(roaditem.direction) + vbCrLf
                         itemInfo = itemInfo & roadsub.sName & "-→" & roadsub.eName & " " & roadsub.info & vbCrLf
+                        If dict.Exists(itemInfo) = False Then
+                            dict.Add itemInfo, itemInfo
+                        End If
                     End If
                 Next
             Next
-            If content <> "" Then
-                content = content & "- - - - - - - - - - - -" & vbCrLf
+
+        Next
+        Dim s
+        For Each s In dict
+            If s <> "" Then
+                If content <> "" Then
+                    content = content & "- - - - - - - - - - - -" & vbCrLf
+                End If
+                content = content & s
             End If
-            content = content & itemInfo
         Next
     End With
-    queryLuKuang = content
+    If content <> "" Then
+        queryLuKuang = "[CQ:at,qq=" & qq & "]" & vbCrLf & content
+    Else
+        queryLuKuang = "[CQ:at,qq=" & qq & "]" & vbCrLf & "没有查到相关路况"
+    End If
+errh:
+End Function
+
+Private Function findKeyWord(value As String, keyword As String) As Boolean
+    On Error GoTo errh
+    Dim bFind As Boolean
+    Dim data() As String
+    Dim i As Integer
+    bFind = False
+    If Trim(keyword) <> "" Then  '如果不是查全部
+         data = split(keyword, " ")
+         bFind = False
+         For i = 0 To UBound(data)
+             If data(i) <> "" Then
+                 If InStr(value, data(i)) Then
+                     bFind = True
+                     Exit For
+                 End If
+             End If
+         Next i
+     Else
+         bFind = True
+     End If
+     findKeyWord = bFind
 errh:
 End Function
 Private Function getDirection(direction As String)
@@ -251,7 +304,7 @@ Public Function getUserPhone(ByVal TempStr As String) As String
     i = 0
     For Each m In ms
         DoEvents
-        temp = m.Value
+        temp = m.value
         Exit For
     Next
     getUserPhone = temp
@@ -405,14 +458,13 @@ End Function
 Private Function replaceWeek(content As String) As String
     Dim day As Integer
     day = Weekday(Now)
-    
     content = Replace(content, "周一", fomratDateToDay(DateAdd("d", Abs(2 - day), Now)))
     content = Replace(content, "周二", fomratDateToDay(DateAdd("d", Abs(3 - day), Now)))
     content = Replace(content, "周三", fomratDateToDay(DateAdd("d", Abs(4 - day), Now)))
     content = Replace(content, "周四", fomratDateToDay(DateAdd("d", Abs(5 - day), Now)))
     content = Replace(content, "周五", fomratDateToDay(DateAdd("d", Abs(6 - day), Now)))
     content = Replace(content, "周六", fomratDateToDay(DateAdd("d", Abs(7 - day), Now)))
-    content = Replace(content, "周日", fomratDateToDay(DateAdd("d", Abs(1 - day), Now)))
+    content = Replace(content, "周日", fomratDateToDay(DateAdd("d", Abs(8 - day), Now)))
     
     replaceWeek = content
 End Function

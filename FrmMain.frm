@@ -61,6 +61,7 @@ Option Explicit
 
 Private strQQ As String
 Private strGroup As String
+Private strKeyWord As String
 
 Private Sub Form_Load()
     web.Silent = True
@@ -87,6 +88,13 @@ Public Sub queryLuKuang(url As String, qq As String, group As String)
     web.Silent = True
     web.Navigate url
 End Sub
+'Public Sub searchLuKuang(url As String, qq As String, group As String, keyword As String)
+'    strQQ = qq
+'    strGroup = group
+'    strKeyWord = keyword
+'    web.Silent = True
+'    web.Navigate url
+'End Sub
 Private Sub web_DocumentComplete(ByVal pDisp As Object, url As Variant)
     On Error GoTo errh
     Dim splitTool As New clsSplit
@@ -95,6 +103,8 @@ Private Sub web_DocumentComplete(ByVal pDisp As Object, url As Variant)
         content = splitTool.parseLuKuang(web.Document, strQQ, strGroup, url)
     ElseIf url = XIANXING_URL Then
         content = splitTool.parseXianXing(web.Document, strQQ, strGroup, url)
+'    ElseIf url = LUKUANG_URL Then
+'        content = splitTool.queryLuKuang(strQQ, strGroup, strKeyWord)
     End If
     If content <> "" Then
         Debug.Print content
