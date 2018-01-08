@@ -88,6 +88,10 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         FrmMain.queryLuKuang XIANXING_URL, qq, group
         Exit Function
     End If
+    If content = "查路况" Then
+        parse = queryLuKuang(qq, group)
+        Exit Function
+    End If
     If Left(content, 1) = "搜" Then
         Dim keyword As String
         keyword = Mid(content, 2)
@@ -164,6 +168,72 @@ End Function
 
 Private Function getNoDataMsg(qq As String) As String
     getNoDataMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + vbCrLf + "非常抱歉,暂时没有相关信息"
+End Function
+
+Private Function queryLuKuang(qq As String, group As String) As String
+    On Error GoTo errh
+    Dim xmlHttp
+    Set xmlHttp = CreateObject("Microsoft.XMLHTTP")
+    xmlHttp.Open "GET", "http://eye.bjjtw.gov.cn/Web-T_bjjt_new/query.do?serviceType=jam&acode=110000&type=3&cls=0&rcd=40", True
+    xmlHttp.send (Null)
+    While xmlHttp.ReadyState <> 4
+        DoEvents
+    Wend
+    Dim body As String
+    body = xmlHttp.responseText
+    If body = "" Then
+        Exit Function
+    End If
+
+    Dim content As String
+    
+    Dim ScriptControl As Object, roads As Object, JscriptCode$
+    JscriptCode = "function toObject(json) {eval(""var o=""+json);return o;}"
+    Set ScriptControl = CreateObject("MSScriptControl.ScriptControl")
+    With ScriptControl
+        .Language = "Javascript"
+        .Timeout = -1
+        .AddCode JscriptCode
+        Set roads = .Run("toObject", body)
+        Dim item
+        Dim time As String
+        Dim txtInfo
+        Dim roaditem
+        Dim roadsub
+        For Each item In roads.roads
+            Set txtInfo = item.txtInfo
+            For Each roaditem In txtInfo
+                For Each roadsub In roaditem.section
+                    If InStr(roadsub.info, "拥堵") > 0 Then
+                        Dim itemInfo As String
+                        itemInfo = item.road & " " & item.time
+  
+                        itemInfo = itemInfo + vbCrLf + getDirection(roaditem.direction) + vbCrLf
+                        itemInfo = itemInfo & roadsub.sName & "-→" & roadsub.eName & " " & roadsub.info & vbCrLf
+                    End If
+                Next
+            Next
+            If content <> "" Then
+                content = content & "- - - - - - - - - - - -" & vbCrLf
+            End If
+            content = content & itemInfo
+        Next
+    End With
+    queryLuKuang = content
+errh:
+End Function
+Private Function getDirection(direction As String)
+    On Error Resume Next
+    Select Case UCase(direction)
+        Case "NS"
+            getDirection = "北向南方向"
+        Case "WE"
+            getDirection = "西向东方向"
+        Case "SN"
+            getDirection = "南向北方向"
+        Case "EW"
+            getDirection = "东向西方向"
+    End Select
 End Function
 
 Public Function getUserPhone(ByVal TempStr As String) As String
