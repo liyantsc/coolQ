@@ -14,7 +14,7 @@ Attribute VB_Exposed = False
 Option Explicit
 Private Conn As New ADODB.Connection
 
-Const TIME_INTERVAL = 60
+Const TIME_INTERVAL = 30
 Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 Private Declare Function GetTickCount Lib "kernel32" () As Long
 
@@ -22,7 +22,12 @@ Private data As New Dictionary
 
 
 Private Function getNextTime()
-    getNextTime = Format(DateAdd("n", TIME_INTERVAL, Now), "yyyy-mm-dd hh:mm")
+    Dim timeCount As Integer
+    timeCount = TIME_INTERVAL
+    If isLingCheng() = True Then
+        timeCount = TIME_INTERVAL * 2
+    End If
+    getNextTime = Format(DateAdd("n", timeCount, Now), "yyyy-mm-dd hh:mm")
 End Function
 
 
@@ -384,13 +389,13 @@ Public Function autoSend() As Boolean
         group = rs.Fields("groupid") + ""
         content = queryInfo(group)
         If content <> "" Then
-            If isLingCheng = False Then
+'            If isLingCheng = False Then
                 addMessage group, content
-            End If
+'            End If
         Else
-            If isLingCheng = False Then
-                addMessage group, "大家好，有发布拼车信息的吗?"
-            End If
+'            If isLingCheng = False Then
+'                addMessage group, "大家好，有发布拼车信息的吗?"
+'            End If
         End If
         rs.MoveNext
     Wend
@@ -402,7 +407,7 @@ Private Function isLingCheng() As Boolean
     Dim hour As Integer
     hour = Format(Now, "hh")
     '10点以后，或者凌晨，就不发送消息了
-    If hour > 22 Or (hour >= 0 And hour <= 7) Then
+    If hour > 23 Or (hour >= 0 And hour <= 6) Then
         isLingCheng = True
     End If
 End Function
@@ -440,8 +445,8 @@ End Function
 Public Sub waitSend()
     On Error Resume Next
     Dim msg As MsgObj
-    If data.Count > 0 Then
-        Set msg = data.Item(data.Keys(0))
+    If data.count > 0 Then
+        Set msg = data.item(data.Keys(0))
         data.Remove data.Keys(0)
         sendMesssage msg.target, msg.content
     End If

@@ -84,7 +84,7 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         FrmMain.queryLuKuang "http://gsgl.00cha.com/G7.html", qq, group
         Exit Function
     End If
-    If content = "查限行" Then
+    If content = "查限行" Or content = "查限号" Or content = "限号查询" Or content = "查询限号" Or content = "限号" Or content = "限行" Then
         FrmMain.queryLuKuang XIANXING_URL, qq, group
         Exit Function
     End If
@@ -115,10 +115,17 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         Exit Function
     End If
     
-    If InStr(content, "车找人") > 0 Or InStr(content, "车寻人") > 0 Or InStr(content, "人寻车") > 0 Or InStr(content, "人找车") > 0 Then
+    If InStr(content, "车找人") > 0 Or InStr(content, "车寻人") > 0 Then
         data = split(content, "@")
         If UBound(data) < 2 Then
-            parse = getErrMsg(qq, "", "")
+            parse = getCheErrMsg(qq, "", "")
+            Exit Function
+        End If
+    End If
+    If InStr(content, "人寻车") > 0 Or InStr(content, "人找车") > 0 Or InStr(content, "找车") > 0 Then
+        data = split(content, "@")
+        If UBound(data) < 2 Then
+            parse = getPersonErrMsg(qq, "", "")
             Exit Function
         End If
     End If
@@ -136,7 +143,7 @@ Public Function parse(content As String, group As String, qq As String) As Strin
             
             parse = "[CQ:at,qq=" & qq & "] 登记成功" & vbCrLf & "发车时间:" & time + vbCrLf + "取消登记请发送 删除"
         Else
-            parse = getErrMsg(qq, time, mobile)
+            parse = getCheErrMsg(qq, time, mobile)
         End If
         Exit Function
     End If
@@ -147,7 +154,7 @@ Public Function parse(content As String, group As String, qq As String) As Strin
             db.insertRenMsg group, qq, mobile, time, content
             parse = "[CQ:at,qq=" & qq & "] 登记成功" & vbCrLf & "坐车时间:" & time + vbCrLf + "取消登记请发送 删除"
         Else
-            parse = getErrMsg(qq, time, mobile)
+            parse = getPersonErrMsg(qq, time, mobile)
         End If
         Exit Function
     End If
@@ -155,20 +162,36 @@ errh:
     
 End Function
 
-Private Function getErrMsg(qq As String, time As String, mobile As String) As String
+Private Function getPersonErrMsg(qq As String, time As String, mobile As String) As String
+    Dim modStr As String
+    modStr = "您可以参考以下模板" + vbCrLf + vbCrLf + "@人寻车@18:00@1761030****@北京回.."
     If time = "" Then
-        getErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "您的信息我已经帮您登记" + vbCrLf + "其他人可以搜索到您的信息" + vbCrLf + "由于未识别到发车时间，所以我不能帮您自动转发" + vbCrLf + "如果您想让我帮您自动转发" + vbCrLf + "您可以参照以下格式" + vbCrLf + "举例:@车寻人@18:00@1761030****@六里桥回*。余3座"
+        getPersonErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "未识别坐车时间不能自动转发" + vbCrLf + "如果您想自动转发" + vbCrLf + modStr
         Exit Function
     End If
     If mobile = "" Then
-        getErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "您的信息我已经帮您登记" + vbCrLf + "其他人可以搜索到您的信息" + vbCrLf + "由于未识别到联系方式，所以我不能帮您自动转发" + vbCrLf + "如果您想让我帮您自动转发" + vbCrLf + "您可以参照以下格式" + vbCrLf + "举例:@车寻人@18:00@1761030****@六里桥回*。余3座"
+        getPersonErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "未识别联系方式不能自动转发" + vbCrLf + "如果您想自动转发" + vbCrLf + modStr
         Exit Function
     End If
-    getErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "您的信息我已经帮您登记" + vbCrLf + "其他人可以搜索到您的信息" + vbCrLf + "由于您的信息我无法识别，所以我不能帮您自动转发" + vbCrLf + "如果您想让我帮您自动转发" + vbCrLf + "您可以参照以下格式" + vbCrLf + "举例:@车寻人@18:00@1761030****@六里桥回*。余3座"
+    getPersonErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "未识别您的信息不能自动转发" + vbCrLf + "如果您想自动转发" + vbCrLf + modStr
+End Function
+
+Private Function getCheErrMsg(qq As String, time As String, mobile As String) As String
+    Dim modStr As String
+    modStr = "您可以参考以下模板" + vbCrLf + vbCrLf + "@车寻人@18:00@1761030****@北京回.."
+    If time = "" Then
+        getCheErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "未识别发车时间不能自动转发" + vbCrLf + "如果您想自动转发" + vbCrLf + modStr
+        Exit Function
+    End If
+    If mobile = "" Then
+        getCheErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "未识别联系方式不能自动转发" + vbCrLf + "如果您想自动转发" + vbCrLf + modStr
+        Exit Function
+    End If
+    getCheErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "未识别您的信息不能自动转发" + vbCrLf + "如果您想自动转发" + vbCrLf + modStr
 End Function
 
 Private Function getNoDataMsg(qq As String) As String
-    getNoDataMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + vbCrLf + "非常抱歉,暂时没有相关信息"
+    getNoDataMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "非常抱歉,暂时没有相关信息"
 End Function
 
 Public Function queryLuKuang(qq As String, group As String, keyword As String) As String
@@ -424,6 +447,7 @@ Private Function getHourMinuteTime(time As String) As String
     time = Replace(time, ".", ":")
     time = Replace(time, "：", ":")
     time = Replace(time, "点", ":")
+    time = Replace(time, "半", "30")
     time = Replace(time, "今天", "上午")
     time = Replace(time, "今晚", "下午")
     time = Replace(time, "晚上", "下午")
@@ -437,6 +461,7 @@ Private Function getHourMinuteTime(time As String) As String
     time = Replace(time, "今", "下午")
     time = Replace(time, "早晨", "上午")
     time = Replace(time, "早上", "上午")
+    time = Replace(time, "中午", "下午")
     time = Replace(time, "本", "")
     
 

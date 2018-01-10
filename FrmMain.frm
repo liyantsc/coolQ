@@ -44,7 +44,7 @@ Begin VB.Form FrmMain
    Begin VB.Timer Timer2 
       Interval        =   5000
       Left            =   3000
-      Top             =   1560
+      Top             =   1530
    End
    Begin VB.Timer Timer1 
       Interval        =   60000
