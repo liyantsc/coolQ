@@ -17,12 +17,9 @@ Public Function parse(content As String, group As String, qq As String) As Strin
 
 
     content = Trim(content)
-    content = Replace(content, vbCr, "")
-    content = Replace(content, vbLf, "")
     content = Replace(content, vbTab, "") '
     content = Replace(content, "'", "")
     content = Replace(content, vbNullChar, "")
-    content = Replace(content, vbCrLf, "")
     
     content = db.filterContent(content)
     
@@ -117,56 +114,89 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         Exit Function
     End If
     
+    parse = parseBySplitChar(content, group, qq, "@")
+    If parse = "" Then
+        parse = parseBySplitChar(content, group, qq, vbCrLf)
+    End If
+errh:
+    If parse = "" Then
+        If InStr(content, "找人") > 0 Or InStr(content, "寻人") > 0 Then
+            parse = getCheErrMsg(qq, time, mobile)
+        ElseIf InStr(content, "找车") > 0 Or InStr(content, "寻车") > 0 Then
+            parse = getPersonErrMsg(qq, time, mobile)
+        Else
+            parse = getCheErrMsg(qq, time, mobile)
+        End If
+    End If
+End Function
+
+Private Function parseBySplitChar(content As String, group As String, qq As String, splitChar As String) As String
+    On Error GoTo errh
+    Dim data() As String
+    Dim time As String
+    Dim mobile As String
+    Dim dateTime As Date
     If InStr(content, "车找人") > 0 Or InStr(content, "车寻人") > 0 Then
-        data = split(content, "@")
+        data = split(content, splitChar)
         If UBound(data) < 2 Then
-            parse = getCheErrMsg(qq, "", "")
+            parseBySplitChar = ""
             Exit Function
         End If
     End If
     If InStr(content, "人寻车") > 0 Or InStr(content, "人找车") > 0 Or InStr(content, "找车") > 0 Then
-        data = split(content, "@")
+        data = split(content, splitChar)
         If UBound(data) < 2 Then
-            parse = getPersonErrMsg(qq, "", "")
+            parseBySplitChar = ""
             Exit Function
         End If
     End If
-    data = split(content, "@")
+    data = split(content, splitChar)
     If UBound(data) = 0 Then
         Exit Function
     End If
     Dim command As String
-    command = Trim(data(1))
+    Dim i As Integer
+    Dim startIndex As Integer
+    If splitChar = "@" Then
+        startIndex = 1
+    Else
+        startIndex = 0
+    End If
+    command = Trim(data(startIndex))
+    command = Replace(command, vbCr, "")
+    command = Replace(command, vbLf, "")
+    command = Replace(command, vbCrLf, "")
+    time = getTime(data(startIndex + 1))
+    mobile = getUserPhone(content)
+    content = ""
+    For i = startIndex + 2 To UBound(data)
+        content = content & data(i)
+    Next i
+    content = Replace(content, splitChar + mobile, "")
+    content = Replace(content, mobile, "")
     If command = "车寻人" Or command = "车找人" Or command = "私家车找人" Then
-        time = getTime(data(2))
-        mobile = getUserPhone(content)
-        content = data(4)
-        If time <> "" And mobile <> "" Then
+        If time <> "" And mobile <> "" And content <> "" Then
             db.insertCheMsg group, qq, mobile, time, content
             
-            parse = "[CQ:at,qq=" & qq & "]" + "[CQ:face,id=76][CQ:face,id=76][CQ:face,id=76]" + vbCrLf + "登记成功 发车时间:" & time + vbCrLf + "取消登记请发送 删除"
-        Else
-            parse = getCheErrMsg(qq, time, mobile)
+            parseBySplitChar = "[CQ:at,qq=" & qq & "]" + "[CQ:face,id=76][CQ:face,id=76][CQ:face,id=76]" + vbCrLf + "登记成功 发车时间:" & time + vbCrLf + "取消登记请发送 删除"
+'        Else
+'            parseBySplitChar = getCheErrMsg(qq, time, mobile)
         End If
         Exit Function
     End If
-    If command = "人寻车" Or command = "人找车" Then
-        time = getTime(data(2))
-        mobile = getUserPhone(content)
-        content = data(4)
+    If command = "人寻车" Or command = "人找车" And content <> "" Then
         If time <> "" And mobile <> "" Then
             db.insertRenMsg group, qq, mobile, time, content
-            parse = "[CQ:at,qq=" & qq & "]" + "[CQ:face,id=76][CQ:face,id=76][CQ:face,id=76]" + vbCrLf + "登记成功 坐车时间:" & time + vbCrLf + "取消登记请发送 删除"
-        Else
-            parse = getPersonErrMsg(qq, time, mobile)
+            parseBySplitChar = "[CQ:at,qq=" & qq & "]" + "[CQ:face,id=76][CQ:face,id=76][CQ:face,id=76]" + vbCrLf + "登记成功 坐车时间:" & time + vbCrLf + "取消登记请发送 删除"
+'        Else
+'            parseBySplitChar = getPersonErrMsg(qq, time, mobile)
         End If
         Exit Function
     End If
 errh:
-    If parse = "" Then
-        parse = getCheErrMsg(qq, time, mobile)
-    End If
+    
 End Function
+
 
 Private Function getPersonErrMsg(qq As String, time As String, mobile As String) As String
     Dim modStr As String
@@ -326,9 +356,12 @@ Public Function getUserPhone(ByVal TempStr As String) As String
     Dim i As Integer
     Dim temp As String
     Dim Result As String
+    TempStr = Replace(TempStr, vbCr, "")
+    TempStr = Replace(TempStr, vbLf, "")
+    TempStr = Replace(TempStr, vbCrLf, "")
     RegGex.IgnoreCase = True
     RegGex.Global = True
-    RegGex.Pattern = "13[0123456789]{1}\d{8}|15[0123456789]\d{8}|18[0123456789]{1}\d{8}|17[0123456789]{1}\d{8}"
+    RegGex.Pattern = "13[0123456789]{1}\d{8}|15[0123456789]\d{8}|18[0123456789]{1}\d{8}|17[0123456789]{1}\d{8}|17[0123456789]{1}\d{8}"
     Set ms = RegGex.Execute(TempStr)
     i = 0
     For Each m In ms
@@ -398,6 +431,9 @@ End Function
 Private Function getTime(content As String) As String
     On Error GoTo errh:
     content = Trim(content)
+    content = Replace(content, vbCr, "")
+    content = Replace(content, vbLf, "")
+    content = Replace(content, vbCrLf, "")
     If (InStr(content, ":") > 0 Or InStr(content, ".") > 0 Or InStr(content, "：") > 0) Or InStr(content, "点") > 0 Then
         Dim time As String
         Dim isTommorrow As Boolean
