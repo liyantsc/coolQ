@@ -124,8 +124,6 @@ errh:
             parse = getCheErrMsg(qq, time, mobile)
         ElseIf InStr(content, "ÕÒ³µ") > 0 Or InStr(content, "Ñ°³µ") > 0 Then
             parse = getPersonErrMsg(qq, time, mobile)
-        Else
-            parse = getCheErrMsg(qq, time, mobile)
         End If
     End If
 End Function
