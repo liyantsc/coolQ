@@ -350,7 +350,7 @@ Private Function getContent(index As Integer, rs As ADODB.Recordset) As String
     ElseIf Format(strTime, "yyyy-mm-dd") = Format(DateAdd("d", Now, 1), "yyyy-mm-dd") Then
         strTime = "Ã÷" & Format(strTime, "hh:mm")
     Else
-        strTime = strTime
+        strTime = Format(strTime, "mm-dd hh:mm")
     End If
     strTime = Replace(strTime, "ÉÏÎç", "")
     strTime = Replace(strTime, "ÏÂÎç", "")
@@ -358,12 +358,12 @@ Private Function getContent(index As Integer, rs As ADODB.Recordset) As String
 
 
     If strtype = "0" Then
-        emoji = "[CQ:emoji,id=128663]"
+        emoji = "[CQ:emoji,id=128661]"
     Else
-        emoji = "[CQ:emoji,id=128107]"
+        emoji = "[CQ:emoji,id=128694]"
     End If
     
-    getContent = index & "" & emoji & strTime & "" & "[CQ:emoji,id=9742]" & rs.Fields("mobile") & vbCrLf & rs.Fields("content")
+    getContent = index & "" & emoji & strTime & "¡¤©Y¡¤" & rs.Fields("mobile") & "¡¤" & rs.Fields("content")
 
 End Function
 

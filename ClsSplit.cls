@@ -110,7 +110,9 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         parse = db.queryItem(group, qq)
         If parse <> "" Then
             db.delMsg group, qq
-            parse = "[CQ:at,qq=" & qq & "]" + vbCrLf + "拼车信息:" + parse + vbCrLf + "删除成功"
+            parse = "[CQ:at,qq=" & qq & "]" + vbCrLf + "删除成功，您的信息将不再转发"
+        Else
+            parse = "[CQ:at,qq=" & qq & "]" + vbCrLf + "虽然我是机器人，但也不能这么调戏我"
         End If
         Exit Function
     End If
@@ -135,13 +137,14 @@ Public Function parse(content As String, group As String, qq As String) As Strin
     End If
     Dim command As String
     command = Trim(data(1))
-    If command = "车寻人" Or command = "车找人" Then
+    If command = "车寻人" Or command = "车找人" Or command = "私家车找人" Then
         time = getTime(data(2))
         mobile = getUserPhone(content)
+        content = data(4)
         If time <> "" And mobile <> "" Then
             db.insertCheMsg group, qq, mobile, time, content
             
-            parse = "[CQ:at,qq=" & qq & "] 登记成功" & vbCrLf & "发车时间:" & time + vbCrLf + "取消登记请发送 删除"
+            parse = "[CQ:at,qq=" & qq & "]" + "[CQ:face,id=76][CQ:face,id=76][CQ:face,id=76]" + vbCrLf + "登记成功 发车时间:" & time + vbCrLf + "取消登记请发送 删除"
         Else
             parse = getCheErrMsg(qq, time, mobile)
         End If
@@ -150,44 +153,47 @@ Public Function parse(content As String, group As String, qq As String) As Strin
     If command = "人寻车" Or command = "人找车" Then
         time = getTime(data(2))
         mobile = getUserPhone(content)
+        content = data(4)
         If time <> "" And mobile <> "" Then
             db.insertRenMsg group, qq, mobile, time, content
-            parse = "[CQ:at,qq=" & qq & "] 登记成功" & vbCrLf & "坐车时间:" & time + vbCrLf + "取消登记请发送 删除"
+            parse = "[CQ:at,qq=" & qq & "]" + "[CQ:face,id=76][CQ:face,id=76][CQ:face,id=76]" + vbCrLf + "登记成功 坐车时间:" & time + vbCrLf + "取消登记请发送 删除"
         Else
             parse = getPersonErrMsg(qq, time, mobile)
         End If
         Exit Function
     End If
 errh:
-    
+    If parse = "" Then
+        parse = getCheErrMsg(qq, time, mobile)
+    End If
 End Function
 
 Private Function getPersonErrMsg(qq As String, time As String, mobile As String) As String
     Dim modStr As String
-    modStr = "您可以参考以下模板" + vbCrLf + vbCrLf + "@人寻车@18:00@1761030****@北京回.."
+    modStr = "您可以参考以下模板重新发送" + vbCrLf + vbCrLf + "@人寻车@18:00@13912345678@出发地点到目的地"
     If time = "" Then
-        getPersonErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "未识别坐车时间不能自动转发" + vbCrLf + "如果您想自动转发" + vbCrLf + modStr
+        getPersonErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "您的格式有误，机器人不会自动转发" + vbCrLf + modStr
         Exit Function
     End If
     If mobile = "" Then
-        getPersonErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "未识别联系方式不能自动转发" + vbCrLf + "如果您想自动转发" + vbCrLf + modStr
+        getPersonErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "您的格式有误，机器人不会自动转发" + vbCrLf + modStr
         Exit Function
     End If
-    getPersonErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "未识别您的信息不能自动转发" + vbCrLf + "如果您想自动转发" + vbCrLf + modStr
+    getPersonErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "您的格式有误，机器人不会自动转发" + vbCrLf + modStr
 End Function
 
 Private Function getCheErrMsg(qq As String, time As String, mobile As String) As String
     Dim modStr As String
-    modStr = "您可以参考以下模板" + vbCrLf + vbCrLf + "@车寻人@18:00@1761030****@北京回.."
+    modStr = "您可以参考以下模板重新发送" + vbCrLf + vbCrLf + "@车寻人@18:00@13912345678@出发地点到目的地"
     If time = "" Then
-        getCheErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "未识别发车时间不能自动转发" + vbCrLf + "如果您想自动转发" + vbCrLf + modStr
+        getCheErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "您的格式有误，机器人不会自动转发" + vbCrLf + modStr
         Exit Function
     End If
     If mobile = "" Then
-        getCheErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "未识别联系方式不能自动转发" + vbCrLf + "如果您想自动转发" + vbCrLf + modStr
+        getCheErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "您的格式有误，机器人不会自动转发" + vbCrLf + modStr
         Exit Function
     End If
-    getCheErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "未识别您的信息不能自动转发" + vbCrLf + "如果您想自动转发" + vbCrLf + modStr
+    getCheErrMsg = "[CQ:at,qq=" & qq & "]" + vbCrLf + "您的格式有误，机器人不会自动转发" + vbCrLf + modStr
 End Function
 
 Private Function getNoDataMsg(qq As String) As String
@@ -444,6 +450,7 @@ Private Function getHourMinuteTime(time As String) As String
     time = Replace(time, "七", "7")
     time = Replace(time, "八", "8")
     time = Replace(time, "九", "9")
+    time = Replace(time, "十", "0")
     time = Replace(time, ".", ":")
     time = Replace(time, "：", ":")
     time = Replace(time, "点", ":")
@@ -463,7 +470,10 @@ Private Function getHourMinuteTime(time As String) As String
     time = Replace(time, "早上", "上午")
     time = Replace(time, "中午", "下午")
     time = Replace(time, "本", "")
-    
+    time = Replace(time, "分", "")
+    time = Replace(time, "早", "上午")
+    time = Replace(time, "下", "下午")
+    time = Replace(time, "下午午", "下午")
 
     
     Dim data() As String
@@ -490,6 +500,14 @@ Private Function replaceWeek(content As String) As String
     content = Replace(content, "周五", fomratDateToDay(DateAdd("d", Abs(6 - day), Now)))
     content = Replace(content, "周六", fomratDateToDay(DateAdd("d", Abs(7 - day), Now)))
     content = Replace(content, "周日", fomratDateToDay(DateAdd("d", Abs(8 - day), Now)))
+    
+    content = Replace(content, "星期一", fomratDateToDay(DateAdd("d", Abs(2 - day), Now)))
+    content = Replace(content, "星期二", fomratDateToDay(DateAdd("d", Abs(3 - day), Now)))
+    content = Replace(content, "星期三", fomratDateToDay(DateAdd("d", Abs(4 - day), Now)))
+    content = Replace(content, "星期四", fomratDateToDay(DateAdd("d", Abs(5 - day), Now)))
+    content = Replace(content, "星期五", fomratDateToDay(DateAdd("d", Abs(6 - day), Now)))
+    content = Replace(content, "星期六", fomratDateToDay(DateAdd("d", Abs(7 - day), Now)))
+    content = Replace(content, "星期日", fomratDateToDay(DateAdd("d", Abs(8 - day), Now)))
     
     replaceWeek = content
 End Function
