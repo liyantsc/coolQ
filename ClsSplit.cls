@@ -484,7 +484,7 @@ Private Function getHourMinuteTime(time As String) As String
     time = Replace(time, "七", "7")
     time = Replace(time, "八", "8")
     time = Replace(time, "九", "9")
-    time = Replace(time, "十", "0")
+    time = Replace(time, "十", "10")
     time = Replace(time, ".", ":")
     time = Replace(time, "：", ":")
     time = Replace(time, "点", ":")
@@ -522,6 +522,9 @@ Private Function getHourMinuteTime(time As String) As String
     If data(1) = "" Then
         time = time + "00"
     End If
+    If InStr(time, "00:00") Then
+        time = ""
+    End If
     getHourMinuteTime = time
 errh:
     
@@ -529,24 +532,52 @@ End Function
 
 Private Function replaceWeek(content As String) As String
     Dim day As Integer
+    Dim needAddValue As Integer
     day = Weekday(Now)
-    content = Replace(content, "周一", fomratDateToDay(DateAdd("d", Abs(2 - day), Now)))
-    content = Replace(content, "周二", fomratDateToDay(DateAdd("d", Abs(3 - day), Now)))
-    content = Replace(content, "周三", fomratDateToDay(DateAdd("d", Abs(4 - day), Now)))
-    content = Replace(content, "周四", fomratDateToDay(DateAdd("d", Abs(5 - day), Now)))
-    content = Replace(content, "周五", fomratDateToDay(DateAdd("d", Abs(6 - day), Now)))
-    content = Replace(content, "周六", fomratDateToDay(DateAdd("d", Abs(7 - day), Now)))
-    content = Replace(content, "周日", fomratDateToDay(DateAdd("d", Abs(8 - day), Now)))
+    needAddValue = getNeedAdd(content)
+    content = Replace(content, "周一", fomratDateToDay(DateAdd("d", needAddValue, Now)))
+    content = Replace(content, "周二", fomratDateToDay(DateAdd("d", needAddValue, Now)))
+    content = Replace(content, "周三", fomratDateToDay(DateAdd("d", needAddValue, Now)))
+    content = Replace(content, "周四", fomratDateToDay(DateAdd("d", needAddValue, Now)))
+    content = Replace(content, "周五", fomratDateToDay(DateAdd("d", needAddValue, Now)))
+    content = Replace(content, "周六", fomratDateToDay(DateAdd("d", needAddValue, Now)))
+    content = Replace(content, "周日", fomratDateToDay(DateAdd("d", needAddValue, Now)))
     
-    content = Replace(content, "星期一", fomratDateToDay(DateAdd("d", Abs(2 - day), Now)))
-    content = Replace(content, "星期二", fomratDateToDay(DateAdd("d", Abs(3 - day), Now)))
-    content = Replace(content, "星期三", fomratDateToDay(DateAdd("d", Abs(4 - day), Now)))
-    content = Replace(content, "星期四", fomratDateToDay(DateAdd("d", Abs(5 - day), Now)))
-    content = Replace(content, "星期五", fomratDateToDay(DateAdd("d", Abs(6 - day), Now)))
-    content = Replace(content, "星期六", fomratDateToDay(DateAdd("d", Abs(7 - day), Now)))
-    content = Replace(content, "星期日", fomratDateToDay(DateAdd("d", Abs(8 - day), Now)))
+    content = Replace(content, "星期一", fomratDateToDay(DateAdd("d", needAddValue, Now)))
+    content = Replace(content, "星期二", fomratDateToDay(DateAdd("d", needAddValue, Now)))
+    content = Replace(content, "星期三", fomratDateToDay(DateAdd("d", needAddValue, Now)))
+    content = Replace(content, "星期四", fomratDateToDay(DateAdd("d", needAddValue, Now)))
+    content = Replace(content, "星期五", fomratDateToDay(DateAdd("d", needAddValue, Now)))
+    content = Replace(content, "星期六", fomratDateToDay(DateAdd("d", needAddValue, Now)))
+    content = Replace(content, "星期日", fomratDateToDay(DateAdd("d", needAddValue, Now)))
     
     replaceWeek = content
+End Function
+
+Private Function getNeedAdd(content As String) As Integer
+    Dim day As Integer
+    Dim value As Integer
+    
+    day = Weekday(Now)
+    If InStr(content, "周一") Or InStr(content, "星期一") Then
+        value = 2 - day
+    ElseIf InStr(content, "周二") Or InStr(content, "星期二") Then
+        value = 3 - day
+    ElseIf InStr(content, "周三") Or InStr(content, "星期三") Then
+        value = 4 - day
+    ElseIf InStr(content, "周四") Or InStr(content, "星期四") Then
+        value = 5 - day
+    ElseIf InStr(content, "周五") Or InStr(content, "星期五") Then
+        value = 6 - day
+    ElseIf InStr(content, "周六") Or InStr(content, "星期六") Then
+        value = 7 - day
+    ElseIf InStr(content, "周日") Or InStr(content, "星期日") Then
+        value = 8 - day
+    End If
+    If (value < 0) Then
+        value = 7 + value
+    End If
+    getNeedAdd = value
 End Function
 
 Private Function fomratDateToDay(content As String) As String
