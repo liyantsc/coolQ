@@ -359,7 +359,7 @@ Public Function getUserPhone(ByVal TempStr As String) As String
     TempStr = Replace(TempStr, vbCrLf, "")
     RegGex.IgnoreCase = True
     RegGex.Global = True
-    RegGex.Pattern = "13[0123456789]{1}\d{8}|15[0123456789]\d{8}|18[0123456789]{1}\d{8}|17[0123456789]{1}\d{8}|17[0123456789]{1}\d{8}"
+    RegGex.Pattern = "13[0123456789]{1}\d{8}|15[0123456789]\d{8}|18[0123456789]{1}\d{8}|17[0123456789]{1}\d{8}|19[0123456789]{1}\d{8}|16[0123456789]{1}\d{8}"
     Set ms = RegGex.Execute(TempStr)
     i = 0
     For Each m In ms
@@ -475,7 +475,7 @@ Private Function getHourMinuteTime(time As String) As String
     On Error GoTo errh:
     time = Replace(time, "一", "1")
     time = Replace(time, "二", "2")
-    
+    time = Replace(time, "两", "2")
     time = Replace(time, "三", "3")
     
     time = Replace(time, "四", "4")
@@ -509,7 +509,6 @@ Private Function getHourMinuteTime(time As String) As String
     time = Replace(time, "本", "")
     time = Replace(time, "分", "")
     time = Replace(time, "早", "上午")
-    time = Replace(time, "下", "下午")
     time = Replace(time, "下午午", "下午")
 
     
