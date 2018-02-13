@@ -27,7 +27,7 @@ Public Function parse(content As String, group As String, qq As String) As Strin
         Exit Function
     End If
     
-    If InStr(content, "找人") > 0 Or InStr(content, "车寻人") Or InStr(content, "私家车") Then
+    If InStr(content, "找人") > 0 Or InStr(content, "车寻人") Or InStr(content, "私家车") Or InStr(content, "找车") Or InStr(content, "寻车") Or InStr(content, "有没有车") Or InStr(content, "有车吗") Then
         db.insertMsgInfo group, qq, content
     End If
     

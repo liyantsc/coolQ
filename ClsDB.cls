@@ -319,7 +319,7 @@ Private Function searchOther(key As String) As String
 
             If index <= 5 Then
             
-                content = content & index & "¡¢" + rs.Fields("content") + vbCrLf + vbCrLf
+                content = content & index & "¡¢QQ£º" + rs.Fields("qq") + vbCrLf + rs.Fields("content") + vbCrLf + vbCrLf
             End If
 
             rs.MoveNext
